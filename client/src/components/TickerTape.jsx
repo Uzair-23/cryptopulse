@@ -53,7 +53,7 @@ export default function TickerTape({ coins = [] }) {
 
   if (!topCoins.length) {
     return (
-      <div className="w-full h-11 bg-surface border-b border-border animate-pulse" />
+      <div className="sticky top-14 z-40 w-full h-11 bg-surface border-b border-border animate-pulse" />
     );
   }
 
@@ -92,7 +92,7 @@ export default function TickerTape({ coins = [] }) {
   };
 
   return (
-    <div className="w-full bg-surface border-b border-border h-11 overflow-hidden flex items-center relative ticker-container">
+    <div className="sticky top-14 z-40 w-full bg-surface border-b border-border h-11 overflow-hidden flex items-center relative ticker-container">
       <div className="ticker-track h-full flex items-center">
         {/* First copy of 15 items */}
         <div className="flex items-center h-full shrink-0">
