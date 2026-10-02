@@ -170,11 +170,11 @@ export default function Dashboard({ initialTab }) {
         </div>
       </div>
 
-      {/* Fear & Greed Index Card */}
-      <FearGreedCard />
-
-      {/* AI Market Summary Card — fetches independently, never blocks coin grid */}
-      <AiSummaryCard />
+      {/* Fear & Greed Index & AI Market Summary — side-by-side row */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 mb-6 items-stretch">
+        <FearGreedCard className="lg:col-span-5 xl:col-span-4 h-full" />
+        <AiSummaryCard className="lg:col-span-7 xl:col-span-8 h-full" />
+      </div>
 
       {/* Tabs: All / Watchlist / Gainers / Losers */}
       <div className="flex items-center gap-2 mb-6 border-b border-border pb-3 overflow-x-auto">

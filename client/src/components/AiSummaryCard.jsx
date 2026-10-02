@@ -17,9 +17,9 @@ function relativeTime(isoString) {
 }
 
 // ── Skeleton ─────────────────────────────────────────────────────────────────
-function AiSummaryCardSkeleton() {
+function AiSummaryCardSkeleton({ className = '' }) {
   return (
-    <div className="bg-surface border border-border rounded-xl p-5 animate-pulse mb-6">
+    <div className={`bg-surface border border-border rounded-xl p-5 animate-pulse flex flex-col justify-between ${className}`}>
       {/* Label row */}
       <div className="flex items-center gap-2 mb-3">
         <div className="h-3 w-28 bg-surface2 rounded" />
@@ -45,7 +45,7 @@ function AiSummaryCardSkeleton() {
 }
 
 // ── Main Component ────────────────────────────────────────────────────────────
-export default function AiSummaryCard() {
+export default function AiSummaryCard({ className = '' }) {
   const [state, setState] = useState('loading'); // 'loading' | 'success' | 'error'
   const [data, setData] = useState(null);
 
@@ -71,12 +71,12 @@ export default function AiSummaryCard() {
   }, []);
 
   // ── Loading ────────────────────────────────────────────────────────────────
-  if (state === 'loading') return <AiSummaryCardSkeleton />;
+  if (state === 'loading') return <AiSummaryCardSkeleton className={className} />;
 
   // ── Error ──────────────────────────────────────────────────────────────────
   if (state === 'error') {
     return (
-      <div className="bg-surface border border-border rounded-xl p-5 mb-6">
+      <div className={`bg-surface border border-border rounded-xl p-5 ${className}`}>
         <div className="flex items-center gap-2 mb-1">
           <SectionLabel color="text-ai">AI Market Insight</SectionLabel>
         </div>
@@ -91,16 +91,17 @@ export default function AiSummaryCard() {
   const { headline, summary, tips, generatedAt, stale } = data;
 
   return (
-    <div className="bg-surface border border-border rounded-xl p-5 mb-6">
-      {/* Label row: "AI Market Insight" + optional stale tag */}
-      <div className="flex items-center gap-2 mb-3">
-        <SectionLabel color="text-ai">AI Market Insight</SectionLabel>
-        {stale && (
-          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded border border-warn/40 text-warn bg-warn/10 select-none">
-            stale
-          </span>
-        )}
-      </div>
+    <div className={`bg-surface border border-border rounded-xl p-5 flex flex-col justify-between ${className}`}>
+      <div>
+        {/* Label row: "AI Market Insight" + optional stale tag */}
+        <div className="flex items-center gap-2 mb-3">
+          <SectionLabel color="text-ai">AI Market Insight</SectionLabel>
+          {stale && (
+            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded border border-warn/40 text-warn bg-warn/10 select-none">
+              stale
+            </span>
+          )}
+        </div>
 
       {/* Headline */}
       <p className="text-sm font-bold text-text mb-2 leading-snug">{headline}</p>
@@ -121,8 +122,10 @@ export default function AiSummaryCard() {
         ))}
       </ul>
 
+      </div>
+
       {/* Meta row: timestamp + disclaimer */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 pt-3 border-t border-border/50">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 pt-3 border-t border-border/50 mt-auto">
         <span className="text-[11px] text-textFaint">
           Updated {relativeTime(generatedAt)}
         </span>

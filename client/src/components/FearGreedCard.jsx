@@ -3,9 +3,9 @@ import api from '../lib/api';
 import SectionLabel from './SectionLabel';
 
 // ── Skeleton ─────────────────────────────────────────────────────────────────
-function FearGreedCardSkeleton() {
+function FearGreedCardSkeleton({ className = '' }) {
   return (
-    <div className="bg-surface border border-border rounded-xl p-5 animate-pulse mb-6">
+    <div className={`bg-surface border border-border rounded-xl p-5 animate-pulse flex flex-col justify-between ${className}`}>
       {/* Label row skeleton */}
       <div className="h-3 w-36 bg-surface2 rounded mb-3" />
       {/* Value & label row skeleton */}
@@ -25,7 +25,7 @@ function FearGreedCardSkeleton() {
 }
 
 // ── Main Component ────────────────────────────────────────────────────────────
-export default function FearGreedCard() {
+export default function FearGreedCard({ className = '' }) {
   const [state, setState] = useState('loading'); // 'loading' | 'success' | 'error'
   const [data, setData] = useState(null);
 
@@ -52,13 +52,13 @@ export default function FearGreedCard() {
 
   // ── Loading State ──────────────────────────────────────────────────────────
   if (state === 'loading') {
-    return <FearGreedCardSkeleton />;
+    return <FearGreedCardSkeleton className={className} />;
   }
 
   // ── Error State ────────────────────────────────────────────────────────────
   if (state === 'error' || !data?.current) {
     return (
-      <div className="bg-surface border border-border rounded-xl p-5 mb-6">
+      <div className={`bg-surface border border-border rounded-xl p-5 ${className}`}>
         <div className="flex items-center gap-2 mb-1">
           <SectionLabel>Fear &amp; Greed Index</SectionLabel>
         </div>
@@ -81,29 +81,31 @@ export default function FearGreedCard() {
   const clampedValue = Math.min(Math.max(value, 0), 100);
 
   return (
-    <div className="bg-surface border border-border rounded-xl p-5 mb-6">
-      {/* Label row: title + optional stale tag */}
-      <div className="flex items-center gap-2 mb-2">
-        <SectionLabel>Fear &amp; Greed Index</SectionLabel>
-        {stale && (
-          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded border border-warn/40 text-warn bg-warn/10 select-none">
-            stale
-          </span>
-        )}
-      </div>
+    <div className={`bg-surface border border-border rounded-xl p-5 flex flex-col justify-between ${className}`}>
+      <div>
+        {/* Label row: title + optional stale tag */}
+        <div className="flex items-center gap-2 mb-2">
+          <SectionLabel>Fear &amp; Greed Index</SectionLabel>
+          {stale && (
+            <span className="text-[10px] font-medium px-1.5 py-0.5 rounded border border-warn/40 text-warn bg-warn/10 select-none">
+              stale
+            </span>
+          )}
+        </div>
 
-      {/* Numeric value large & bold + classification label */}
-      <div className="flex items-baseline gap-3 mb-4">
-        <span className={`text-2xl sm:text-3xl font-bold tabular-nums tracking-tight ${sentimentColor}`}>
-          {value}
-        </span>
-        <span className={`text-sm sm:text-base font-semibold ${sentimentColor}`}>
-          {label}
-        </span>
+        {/* Numeric value large & bold + classification label */}
+        <div className="flex items-baseline gap-3 mb-4">
+          <span className={`text-2xl sm:text-3xl font-bold tabular-nums tracking-tight ${sentimentColor}`}>
+            {value}
+          </span>
+          <span className={`text-sm sm:text-base font-semibold ${sentimentColor}`}>
+            {label}
+          </span>
+        </div>
       </div>
 
       {/* Horizontal gauge bar */}
-      <div className="relative pt-1">
+      <div className="relative pt-1 mt-auto">
         {/* Track with CSS linear-gradient: red (0) through grey/amber (50) to green (100) */}
         <div
           className="relative w-full h-2.5 rounded-full overflow-hidden"
