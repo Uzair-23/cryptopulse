@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../lib/api';
+import SectionLabel from './SectionLabel';
 
 // ── Skeleton ─────────────────────────────────────────────────────────────────
 function FearGreedCardSkeleton() {
@@ -59,9 +60,7 @@ export default function FearGreedCard() {
     return (
       <div className="bg-surface border border-border rounded-xl p-5 mb-6">
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-textMuted">
-            Fear &amp; Greed Index
-          </span>
+          <SectionLabel>Fear &amp; Greed Index</SectionLabel>
         </div>
         <p className="text-sm text-textMuted">
           Sentiment data unavailable right now.
@@ -85,9 +84,7 @@ export default function FearGreedCard() {
     <div className="bg-surface border border-border rounded-xl p-5 mb-6">
       {/* Label row: title + optional stale tag */}
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-textMuted">
-          Fear &amp; Greed Index
-        </span>
+        <SectionLabel>Fear &amp; Greed Index</SectionLabel>
         {stale && (
           <span className="text-[10px] font-medium px-1.5 py-0.5 rounded border border-warn/40 text-warn bg-warn/10 select-none">
             stale

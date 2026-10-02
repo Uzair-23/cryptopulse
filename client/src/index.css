@@ -5,7 +5,7 @@
   --surface: #11151C;
   --surface-2: #171C26;
   --surface2: #171C26;
-  --border: #242A35;
+  --border: rgba(255, 255, 255, 0.14);
   --text: #E8EAED;
   --text-muted: #8A94A3;
   --text-faint: #5B6472;
@@ -16,6 +16,7 @@
   --star: #F2C94C;
   --ai: #5B9BD5;
 }
+
 
 @theme {
   --color-bg: var(--bg);

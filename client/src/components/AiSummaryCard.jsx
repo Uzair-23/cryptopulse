@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../lib/api';
+import SectionLabel from './SectionLabel';
 
 /**
  * Returns a human-readable relative time string from an ISO timestamp.
@@ -77,9 +78,7 @@ export default function AiSummaryCard() {
     return (
       <div className="bg-surface border border-border rounded-xl p-5 mb-6">
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-ai">
-            AI Market Insight
-          </span>
+          <SectionLabel color="text-ai">AI Market Insight</SectionLabel>
         </div>
         <p className="text-sm text-textMuted">
           AI insights aren't available right now.
@@ -95,9 +94,7 @@ export default function AiSummaryCard() {
     <div className="bg-surface border border-border rounded-xl p-5 mb-6">
       {/* Label row: "AI Market Insight" + optional stale tag */}
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-ai">
-          AI Market Insight
-        </span>
+        <SectionLabel color="text-ai">AI Market Insight</SectionLabel>
         {stale && (
           <span className="text-[10px] font-medium px-1.5 py-0.5 rounded border border-warn/40 text-warn bg-warn/10 select-none">
             stale

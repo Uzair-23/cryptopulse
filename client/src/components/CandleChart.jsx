@@ -132,9 +132,12 @@ export default function CandleChart({
     // Handle responsive container resize
     const resizeObserver = new ResizeObserver((entries) => {
       if (!entries || !entries.length || !entries[0].contentRect) return;
-      const { width } = entries[0].contentRect;
-      if (width > 0 && chartRef.current) {
-        chartRef.current.applyOptions({ width });
+      const { width, height: observedHeight } = entries[0].contentRect;
+      if (chartRef.current) {
+        chartRef.current.applyOptions({
+          ...(width > 0 ? { width } : {}),
+          ...(observedHeight > 0 ? { height: observedHeight } : {})
+        });
       }
     });
 

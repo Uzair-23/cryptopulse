@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../lib/api';
+import SectionLabel from './SectionLabel';
 
 /**
  * Returns a human-readable relative time string from an ISO timestamp.
@@ -81,9 +82,7 @@ export default function AiCoinInsightCard({ coinId }) {
     return (
       <div className="bg-surface border border-border rounded-xl p-4 sm:p-5">
         <div className="flex items-center gap-2 mb-2">
-          <span className="text-[11px] uppercase tracking-wider font-semibold text-ai">
-            AI Insight
-          </span>
+          <SectionLabel color="text-ai">AI Insight</SectionLabel>
         </div>
         <p className="text-xs text-textMuted leading-relaxed">
           AI insight unavailable for this coin right now
@@ -98,9 +97,7 @@ export default function AiCoinInsightCard({ coinId }) {
     <div className="bg-surface border border-border rounded-xl p-4 sm:p-5">
       {/* Header: Label + optional stale pill */}
       <div className="flex items-center justify-between gap-2 mb-2.5">
-        <span className="text-[11px] uppercase tracking-wider font-semibold text-ai">
-          AI Insight
-        </span>
+        <SectionLabel color="text-ai">AI Insight</SectionLabel>
         {stale && (
           <span className="text-[10px] font-medium px-1.5 py-0.5 rounded border border-warn/40 text-warn bg-warn/10 select-none">
             stale

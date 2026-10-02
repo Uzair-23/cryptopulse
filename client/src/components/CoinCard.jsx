@@ -122,30 +122,29 @@ export default function CoinCard({ coin }) {
         <Pill variant={rec.label}>{rec.label}</Pill>
       </div>
 
-      {/* 5. Footer row: Volume & Market Cap on left, Sparkline on right */}
-      <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/40 mt-auto">
-        <div className="flex items-center gap-3 text-xs min-w-0">
-          <div>
-            <span className="block text-[10px] text-textMuted font-medium uppercase tracking-wider">
-              24h Vol
-            </span>
-            <span className="tabular-nums font-semibold text-text text-xs">
-              {formatVolumeOrCap(coin.total_volume)}
-            </span>
-          </div>
-          <div>
-            <span className="block text-[10px] text-textMuted font-medium uppercase tracking-wider">
-              MCap
-            </span>
-            <span className="tabular-nums font-semibold text-text text-xs">
-              {formatVolumeOrCap(coin.market_cap)}
-            </span>
-          </div>
+      {/* 5. Metrics row: Volume & Market Cap */}
+      <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-border mt-auto">
+        <div>
+          <span className="block text-[10px] text-textMuted font-medium uppercase tracking-wider mb-0.5">
+            24h Vol
+          </span>
+          <span className="tabular-nums font-semibold text-text text-xs">
+            {formatVolumeOrCap(coin.total_volume)}
+          </span>
         </div>
+        <div className="text-right">
+          <span className="block text-[10px] text-textMuted font-medium uppercase tracking-wider mb-0.5">
+            MCap
+          </span>
+          <span className="tabular-nums font-semibold text-text text-xs">
+            {formatVolumeOrCap(coin.market_cap)}
+          </span>
+        </div>
+      </div>
 
-        <div className="shrink-0 flex items-center justify-end">
-          <Sparkline data={sparklineData} width={64} height={26} />
-        </div>
+      {/* 6. Dedicated full-width Sparkline strip */}
+      <div className="w-full pt-1.5 overflow-hidden">
+        <Sparkline data={sparklineData} width="100%" height={30} />
       </div>
     </div>
   );
@@ -191,20 +190,23 @@ export function CoinCardSkeleton() {
         <div className="h-5 w-16 bg-surface2 rounded-full" />
       </div>
 
-      {/* Footer skeleton */}
-      <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/40 mt-auto">
-        <div className="flex items-center gap-3">
-          <div>
-            <div className="h-2 w-10 bg-surface2 rounded mb-1.5" />
-            <div className="h-3 w-14 bg-surface2 rounded" />
-          </div>
-          <div>
-            <div className="h-2 w-8 bg-surface2 rounded mb-1.5" />
-            <div className="h-3 w-14 bg-surface2 rounded" />
-          </div>
+      {/* Metrics row skeleton */}
+      <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-border mt-auto">
+        <div>
+          <div className="h-2 w-10 bg-surface2 rounded mb-1.5" />
+          <div className="h-3 w-14 bg-surface2 rounded" />
         </div>
-        <div className="w-16 h-6 bg-surface2 rounded" />
+        <div className="flex flex-col items-end">
+          <div className="h-2 w-8 bg-surface2 rounded mb-1.5" />
+          <div className="h-3 w-14 bg-surface2 rounded" />
+        </div>
+      </div>
+
+      {/* Sparkline skeleton */}
+      <div className="w-full pt-1.5">
+        <div className="w-full h-[30px] bg-surface2 rounded" />
       </div>
     </div>
   );
 }
+

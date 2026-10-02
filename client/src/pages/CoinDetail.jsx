@@ -22,7 +22,8 @@ import { useWatchlist } from '../context/WatchlistContext';
 import CandleChart from '../components/CandleChart';
 import { mergeNormalizedSeries } from '../lib/normalize';
 import AiCoinInsightCard from '../components/AiCoinInsightCard';
-import CoinAlertCard from '../components/CoinAlertCard';
+import CoinAlertCard, { SetPriceAlertCard, ActiveAlertsCard } from '../components/CoinAlertCard';
+import SectionLabel from '../components/SectionLabel';
 
 
 
@@ -731,13 +732,13 @@ export default function CoinDetail() {
           </button>
         </div>
 
-        {/* Horizontal row of label-over-value stat blocks */}
-        <div className="flex flex-wrap items-center gap-y-3 gap-x-6 sm:gap-x-8 text-left">
+        {/* Horizontal row of label-over-value stat blocks (6-col grid on lg, 3 on tablet, 2 on mobile) */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-y-3 gap-x-4 text-left">
           {/* Price */}
           <div>
-            <div className="text-[11px] uppercase tracking-wider font-semibold text-textMuted mb-0.5">
+            <SectionLabel as="div" className="mb-0.5">
               Price
-            </div>
+            </SectionLabel>
             <div className="text-base sm:text-lg font-bold tabular-nums text-text">
               {formatPrice(currentPrice || coin.current_price)}
             </div>
@@ -745,9 +746,9 @@ export default function CoinDetail() {
 
           {/* 24h Change (both $ and %) */}
           <div>
-            <div className="text-[11px] uppercase tracking-wider font-semibold text-textMuted mb-0.5">
+            <SectionLabel as="div" className="mb-0.5">
               24h Change
-            </div>
+            </SectionLabel>
             <div className="flex items-center gap-1.5 font-semibold text-xs sm:text-sm tabular-nums">
               {change24hAmt !== null && (
                 <span
@@ -761,35 +762,31 @@ export default function CoinDetail() {
             </div>
           </div>
 
-          {/* 24h High (if available) */}
-          {coin.high_24h != null && (
-            <div>
-              <div className="text-[11px] uppercase tracking-wider font-semibold text-textMuted mb-0.5">
-                24h High
-              </div>
-              <div className="text-xs sm:text-sm font-semibold tabular-nums text-text">
-                {formatPrice(coin.high_24h)}
-              </div>
+          {/* 24h High */}
+          <div>
+            <SectionLabel as="div" className="mb-0.5">
+              24h High
+            </SectionLabel>
+            <div className="text-xs sm:text-sm font-semibold tabular-nums text-text">
+              {coin.high_24h != null ? formatPrice(coin.high_24h) : '—'}
             </div>
-          )}
+          </div>
 
-          {/* 24h Low (if available) */}
-          {coin.low_24h != null && (
-            <div>
-              <div className="text-[11px] uppercase tracking-wider font-semibold text-textMuted mb-0.5">
-                24h Low
-              </div>
-              <div className="text-xs sm:text-sm font-semibold tabular-nums text-text">
-                {formatPrice(coin.low_24h)}
-              </div>
+          {/* 24h Low */}
+          <div>
+            <SectionLabel as="div" className="mb-0.5">
+              24h Low
+            </SectionLabel>
+            <div className="text-xs sm:text-sm font-semibold tabular-nums text-text">
+              {coin.low_24h != null ? formatPrice(coin.low_24h) : '—'}
             </div>
-          )}
+          </div>
 
           {/* 24h Volume */}
           <div>
-            <div className="text-[11px] uppercase tracking-wider font-semibold text-textMuted mb-0.5">
+            <SectionLabel as="div" className="mb-0.5">
               24h Volume
-            </div>
+            </SectionLabel>
             <div className="text-xs sm:text-sm font-semibold tabular-nums text-text">
               {formatVolumeOrCap(coin.total_volume)}
             </div>
@@ -797,9 +794,9 @@ export default function CoinDetail() {
 
           {/* Market Cap */}
           <div>
-            <div className="text-[11px] uppercase tracking-wider font-semibold text-textMuted mb-0.5">
+            <SectionLabel as="div" className="mb-0.5">
               Market Cap
-            </div>
+            </SectionLabel>
             <div className="text-xs sm:text-sm font-semibold tabular-nums text-text">
               {formatVolumeOrCap(coin.market_cap)}
             </div>
@@ -807,19 +804,20 @@ export default function CoinDetail() {
         </div>
       </div>
 
-      {/* 2. Two-Column Terminal-Style Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* LEFT Column (~70% = 8 cols): Interactive Price Chart */}
-        <div className="lg:col-span-8 bg-surface border border-border rounded-xl p-4 sm:p-6">
-          {/* Timeframe Switcher & In-Flight Status */}
-          <div className="flex items-center justify-between gap-4 mb-4">
-            <div className="flex items-baseline gap-2">
-              <span className="text-xs font-semibold text-textMuted uppercase tracking-wider">
+      {/* 2. Two-Column Terminal-Style Layout with matched heights */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        {/* LEFT Column (~58% = 7 cols): Interactive Price Chart */}
+        <div className="lg:col-span-7 bg-surface border border-border rounded-xl p-4 sm:p-6 flex flex-col">
+          {/* Header Row: Title on Left, Unified Cluster Toolbar on Right */}
+          <div className="flex flex-wrap items-center justify-between gap-2.5 mb-4">
+            {/* Title + % Change */}
+            <div className="flex items-center gap-2 shrink-0">
+              <SectionLabel className="whitespace-nowrap">
                 Price Chart ({activeTfLabel})
-              </span>
+              </SectionLabel>
               {tfChangeAmount !== null && (
                 <span
-                  className={`text-xs font-semibold tabular-nums ${
+                  className={`text-xs font-semibold tabular-nums shrink-0 ${
                     tfChangeAmount >= 0 ? 'text-bull' : 'text-bear'
                   }`}
                 >
@@ -831,9 +829,10 @@ export default function CoinDetail() {
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            {/* Right-aligned Toolbar Cluster with consistent tight gaps */}
+            <div className="flex items-center justify-end gap-2 shrink-0 ml-auto">
               {(chartType === 'line' ? (chartLoading || compareLoading) : candleLoading) && (
-                <span className="text-xs text-textMuted flex items-center gap-1.5 animate-pulse">
+                <span className="text-xs text-textMuted flex items-center gap-1.5 animate-pulse mr-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-accent" />
                   Updating...
                 </span>
@@ -841,7 +840,7 @@ export default function CoinDetail() {
 
               {/* Compare with... dropdown (visible only in Line mode) */}
               {chartType === 'line' && (
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1">
                   <div className="relative">
                     <select
                       value={compareCoinId || ''}
@@ -853,7 +852,7 @@ export default function CoinDetail() {
                         }
                       }}
                       aria-label="Compare with another cryptocurrency"
-                      className="text-xs font-medium bg-bg border border-border text-text rounded-lg pl-2.5 pr-7 py-1 appearance-none cursor-pointer focus:outline-none focus:border-accent hover:border-textMuted transition-colors"
+                      className="text-xs font-medium bg-bg border border-border text-text rounded-lg pl-2 pr-6 py-1 appearance-none cursor-pointer focus:outline-none focus:border-accent hover:border-textMuted transition-colors max-w-[125px] sm:max-w-[140px] truncate"
                     >
                       <option value="">
                         {compareCoinId ? 'Clear comparison' : 'Compare with...'}
@@ -866,7 +865,7 @@ export default function CoinDetail() {
                           </option>
                         ))}
                     </select>
-                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-textMuted text-[10px]">
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1.5 text-textMuted text-[10px]">
                       ▼
                     </div>
                   </div>
@@ -893,7 +892,7 @@ export default function CoinDetail() {
                   <button
                     type="button"
                     onClick={() => setShowSma20((prev) => !prev)}
-                    className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer flex items-center gap-1.5 ${
+                    className={`px-2 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer flex items-center gap-1 ${
                       showSma20
                         ? 'bg-surface2 text-[#38BDF8] shadow-sm'
                         : 'text-textMuted hover:text-text'
@@ -909,7 +908,7 @@ export default function CoinDetail() {
                   <button
                     type="button"
                     onClick={() => setShowSma50((prev) => !prev)}
-                    className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer flex items-center gap-1.5 ${
+                    className={`px-2 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer flex items-center gap-1 ${
                       showSma50
                         ? 'bg-surface2 text-[#F59E0B] shadow-sm'
                         : 'text-textMuted hover:text-text'
@@ -925,7 +924,7 @@ export default function CoinDetail() {
                   <button
                     type="button"
                     onClick={() => setShowRsi((prev) => !prev)}
-                    className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer flex items-center gap-1.5 ${
+                    className={`px-2 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer flex items-center gap-1 ${
                       showRsi
                         ? 'bg-surface2 text-[#A855F7] shadow-sm'
                         : 'text-textMuted hover:text-text'
@@ -946,7 +945,7 @@ export default function CoinDetail() {
                 <button
                   type="button"
                   onClick={() => setChartType('line')}
-                  className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
+                  className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
                     chartType === 'line'
                       ? 'bg-surface2 text-text shadow-sm'
                       : 'text-textMuted hover:text-text'
@@ -961,7 +960,7 @@ export default function CoinDetail() {
                     setCompareCoinId(null);
                     setCompareChartData(null);
                   }}
-                  className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
+                  className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
                     chartType === 'candles'
                       ? 'bg-surface2 text-text shadow-sm'
                       : 'text-textMuted hover:text-text'
@@ -980,7 +979,7 @@ export default function CoinDetail() {
                       key={tf.days}
                       type="button"
                       onClick={() => setTimeframe(tf.days)}
-                      className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
+                      className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
                         isActive
                           ? 'bg-surface2 text-text shadow-sm'
                           : 'text-textMuted hover:text-text'
@@ -992,7 +991,6 @@ export default function CoinDetail() {
                 })}
               </div>
             </div>
-
           </div>
 
           {/* Comparison Legend (visible only when comparison is active) */}
@@ -1047,8 +1045,8 @@ export default function CoinDetail() {
             </div>
           )}
 
-          {/* Chart Viewport (Expanded vertical height) */}
-          <div className="w-full h-[440px] sm:h-[480px] min-w-0 relative">
+          {/* Chart Viewport (flex-grow to fill vertical height) */}
+          <div className="w-full flex-1 min-h-[440px] sm:min-h-[480px] min-w-0 relative flex flex-col">
             {chartType === 'candles' ? (
               candleError ? (
                 <div className="w-full h-full flex flex-col items-center justify-center text-textMuted text-sm border border-dashed border-border/60 rounded-lg p-6">
@@ -1199,13 +1197,13 @@ export default function CoinDetail() {
 
         </div>
 
-        {/* RIGHT Rail (~30% = 4 cols): Recommendation + Compact Stats */}
-        <div className="lg:col-span-4 space-y-5">
+        {/* RIGHT Rail (~42% = 5 cols): Market Signal, AI Insight + 2-Column Bottom Sub-grid */}
+        <div className="lg:col-span-5 flex flex-col gap-4">
           {/* a) Recommendation Panel */}
           {recommendation && (
             <div className="bg-surface border border-border rounded-xl p-4 sm:p-5">
-              <div className="text-[11px] uppercase tracking-wider font-semibold text-textMuted mb-3">
-                Market Signal
+              <div className="mb-3">
+                <SectionLabel>Market Signal</SectionLabel>
               </div>
               <div className="mb-2.5">
                 <Pill variant={recommendation.label}>
@@ -1224,52 +1222,60 @@ export default function CoinDetail() {
           {/* AI Coin Insight Card */}
           <AiCoinInsightCard coinId={id} />
 
-          {/* Price Alert Card */}
-          <CoinAlertCard coin={coin} />
+          {/* Bottom Panels Sub-Grid: 2-column on lg+, single column on smaller screens */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Set Price Alert */}
+            <SetPriceAlertCard coin={coin} />
 
-          {/* b) Compact Stats Panel */}
-          <div className="bg-surface border border-border rounded-xl p-4 sm:p-5">
+            {/* Active Alerts */}
+            <ActiveAlertsCard coin={coin} />
 
-
-            <div className="text-[11px] uppercase tracking-wider font-semibold text-textMuted mb-3.5">
-              Key Statistics
-            </div>
-            <div className="divide-y divide-border/50 text-sm">
-              <div className="flex items-center justify-between py-2.5 first:pt-0">
-                <span className="text-xs text-textMuted">Market Cap</span>
-                <span className="font-semibold text-text tabular-nums">
-                  {formatVolumeOrCap(coin.market_cap)}
-                </span>
+            {/* Key Statistics (spans 2 columns on lg+) */}
+            <div className="lg:col-span-2 bg-surface border border-border rounded-xl p-4 sm:p-5">
+              <div className="mb-3.5">
+                <SectionLabel>Key Statistics</SectionLabel>
               </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 text-sm divide-y sm:divide-y-0 divide-border/50">
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between py-1 border-b border-border/40">
+                    <span className="text-xs text-textMuted">Market Cap</span>
+                    <span className="font-semibold text-text tabular-nums">
+                      {formatVolumeOrCap(coin.market_cap)}
+                    </span>
+                  </div>
 
-              <div className="flex items-center justify-between py-2.5">
-                <span className="text-xs text-textMuted">24h Volume</span>
-                <span className="font-semibold text-text tabular-nums">
-                  {formatVolumeOrCap(coin.total_volume)}
-                </span>
-              </div>
+                  <div className="flex items-center justify-between py-1 border-b border-border/40">
+                    <span className="text-xs text-textMuted">24h Volume</span>
+                    <span className="font-semibold text-text tabular-nums">
+                      {formatVolumeOrCap(coin.total_volume)}
+                    </span>
+                  </div>
 
-              <div className="flex items-center justify-between py-2.5">
-                <span className="text-xs text-textMuted">
-                  Circulating Supply
-                </span>
-                <span className="font-semibold text-text tabular-nums">
-                  {formatSupply(coin.circulating_supply, coin.symbol)}
-                </span>
-              </div>
+                  <div className="flex items-center justify-between py-1 border-b sm:border-b-0 border-border/40">
+                    <span className="text-xs text-textMuted">
+                      Circulating Supply
+                    </span>
+                    <span className="font-semibold text-text tabular-nums">
+                      {formatSupply(coin.circulating_supply, coin.symbol)}
+                    </span>
+                  </div>
+                </div>
 
-              <div className="flex items-center justify-between py-2.5">
-                <span className="text-xs text-textMuted">All-Time High</span>
-                <span className="font-semibold text-text tabular-nums">
-                  {formatPrice(coin.ath)}
-                </span>
-              </div>
+                <div className="space-y-2.5 pt-2 sm:pt-0">
+                  <div className="flex items-center justify-between py-1 border-b border-border/40">
+                    <span className="text-xs text-textMuted">All-Time High</span>
+                    <span className="font-semibold text-text tabular-nums">
+                      {formatPrice(coin.ath)}
+                    </span>
+                  </div>
 
-              <div className="flex items-center justify-between py-2.5 last:pb-0">
-                <span className="text-xs text-textMuted">All-Time Low</span>
-                <span className="font-semibold text-text tabular-nums">
-                  {formatPrice(coin.atl)}
-                </span>
+                  <div className="flex items-center justify-between py-1 border-b border-border/40">
+                    <span className="text-xs text-textMuted">All-Time Low</span>
+                    <span className="font-semibold text-text tabular-nums">
+                      {formatPrice(coin.atl)}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
