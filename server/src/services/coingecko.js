@@ -15,8 +15,16 @@ function getHeaders() {
   return headers;
 }
 
-async function getTopCoins() {
-  const cacheKey = 'top-coins';
+const ALLOWED_CURRENCIES = ['usd', 'eur', 'inr', 'aed'];
+
+function sanitizeCurrency(currency) {
+  const c = String(currency || '').toLowerCase();
+  return ALLOWED_CURRENCIES.includes(c) ? c : 'usd';
+}
+
+async function getTopCoins(currency = 'usd') {
+  const curr = sanitizeCurrency(currency);
+  const cacheKey = `top-coins:${curr}`;
   const cached = cache.get(cacheKey);
 
   if (cached) {
@@ -29,7 +37,7 @@ async function getTopCoins() {
   try {
     const response = await axios.get(`${COINGECKO_BASE_URL}/coins/markets`, {
       params: {
-        vs_currency: 'usd',
+        vs_currency: curr,
         order: 'market_cap_desc',
         per_page: 100,
         page: 1,
@@ -62,8 +70,9 @@ async function getTopCoins() {
   }
 }
 
-async function getCoinChart(id, days) {
-  const cacheKey = `chart:${id}:${days}`;
+async function getCoinChart(id, days, currency = 'usd') {
+  const curr = sanitizeCurrency(currency);
+  const cacheKey = `chart:${id}:${days}:${curr}`;
   const cached = cache.get(cacheKey);
 
   if (cached) {
@@ -76,7 +85,7 @@ async function getCoinChart(id, days) {
   try {
     const response = await axios.get(`${COINGECKO_BASE_URL}/coins/${encodeURIComponent(id)}/market_chart`, {
       params: {
-        vs_currency: 'usd',
+        vs_currency: curr,
         days
       },
       headers: getHeaders(),

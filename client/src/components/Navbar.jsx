@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useCurrency } from '../context/CurrencyContext';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { currency, setCurrency, currencies } = useCurrency();
   const location = useLocation();
 
   const isMarketsActive = location.pathname === '/' || location.pathname.startsWith('/coin/');
@@ -45,8 +47,23 @@ export default function Navbar() {
           </nav>
         </div>
 
-        {/* Right: Auth State */}
+        {/* Right: Currency Selector & Auth State */}
         <div className="flex items-center gap-3">
+          {/* Currency Selector */}
+          <div className="relative">
+            <select
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+              className="bg-surface2 border border-border text-xs text-text font-semibold rounded-md px-2.5 py-1.5 focus:outline-none focus:border-accent cursor-pointer transition-colors"
+              aria-label="Select Currency"
+            >
+              {currencies.map((c) => (
+                <option key={c.code} value={c.code} className="bg-surface text-text">
+                  {c.label}
+                </option>
+              ))}
+            </select>
+          </div>
           {user ? (
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 px-2.5 py-1 rounded-md bg-surface2 border border-border/60">

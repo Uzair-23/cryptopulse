@@ -2,32 +2,11 @@ import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CoinIcon from './CoinIcon';
 import PriceChange from './PriceChange';
-
-// Currency formatters
-const currencyStandardFormatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2
-});
-
-const currencySubDollarFormatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  minimumFractionDigits: 4,
-  maximumFractionDigits: 6
-});
-
-function formatPrice(price) {
-  if (price === null || price === undefined || isNaN(price)) return '—';
-  if (price >= 1) {
-    return currencyStandardFormatter.format(price);
-  }
-  return currencySubDollarFormatter.format(price);
-}
+import { useCurrency } from '../context/CurrencyContext';
 
 export default function TickerTape({ coins = [] }) {
   const navigate = useNavigate();
+  const { formatPrice } = useCurrency();
 
   // Slice top 15 coins by market cap
   const topCoins = useMemo(() => {

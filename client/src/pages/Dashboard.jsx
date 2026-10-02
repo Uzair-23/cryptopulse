@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import api from '../lib/api';
 import CoinCard, { CoinCardSkeleton } from '../components/CoinCard';
+import { useCurrency } from '../context/CurrencyContext';
 
 export default function Dashboard() {
+  const { currency } = useCurrency();
   const [coins, setCoins] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -14,7 +16,9 @@ export default function Dashboard() {
 
     async function fetchCoins() {
       try {
-        const res = await api.get('/coins');
+        const res = await api.get('/coins', {
+          params: { currency: currency.toLowerCase() }
+        });
         if (isMounted) {
           setCoins(res.data);
           setError(null);
@@ -38,7 +42,7 @@ export default function Dashboard() {
       isMounted = false;
       clearInterval(interval);
     };
-  }, []);
+  }, [currency]);
 
   // Filter & sort coins based on active tab and search
   const processedCoins = useMemo(() => {

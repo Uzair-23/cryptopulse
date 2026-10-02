@@ -16,46 +16,12 @@ import Skeleton from '../components/Skeleton';
 import Pill from '../components/Pill';
 import { getBasicRecommendation } from '../lib/recommendation';
 import TickerTape from '../components/TickerTape';
-
-// Currency & number formatters
-const currencyCompactFormatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  notation: 'compact',
-  maximumFractionDigits: 2
-});
-
-const currencyStandardFormatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2
-});
-
-const currencySubDollarFormatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  minimumFractionDigits: 4,
-  maximumFractionDigits: 6
-});
+import { useCurrency } from '../context/CurrencyContext';
 
 const numberCompactFormatter = new Intl.NumberFormat('en-US', {
   notation: 'compact',
   maximumFractionDigits: 2
 });
-
-function formatPrice(price) {
-  if (price === null || price === undefined || isNaN(price)) return '—';
-  if (price >= 1) {
-    return currencyStandardFormatter.format(price);
-  }
-  return currencySubDollarFormatter.format(price);
-}
-
-function formatVolumeOrCap(value) {
-  if (value === null || value === undefined || isNaN(value)) return '—';
-  return currencyCompactFormatter.format(value);
-}
 
 function formatSupply(value, symbol) {
   if (value === null || value === undefined || isNaN(value)) return '—';
@@ -70,7 +36,15 @@ const TIMEFRAMES = [
   { label: '1Y', days: '365' }
 ];
 
-function CustomChartTooltip({ active, payload, timeframe, startPrice }) {
+function CustomChartTooltip({
+  active,
+  payload,
+  timeframe,
+  startPrice,
+  formatPrice: propFormatPrice
+}) {
+  const { formatPrice: contextFormatPrice } = useCurrency();
+  const formatPrice = propFormatPrice || contextFormatPrice;
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     const date = new Date(data.timestamp);
@@ -124,6 +98,7 @@ function CustomChartTooltip({ active, payload, timeframe, startPrice }) {
 
 export default function CoinDetail() {
   const { id } = useParams();
+  const { currency, formatPrice, formatVolumeOrCap } = useCurrency();
 
   const [coin, setCoin] = useState(null);
   const [coins, setCoins] = useState([]);
@@ -147,7 +122,9 @@ export default function CoinDetail() {
 
     async function fetchCoinData() {
       try {
-        const res = await api.get('/coins');
+        const res = await api.get('/coins', {
+          params: { currency: currency.toLowerCase() }
+        });
         if (!isMounted) return;
 
         const data = res.data || [];
@@ -183,7 +160,7 @@ export default function CoinDetail() {
     return () => {
       isMounted = false;
     };
-  }, [id]);
+  }, [id, currency]);
 
   // 2. Fetch chart data for selected timeframe
   useEffect(() => {
@@ -194,7 +171,13 @@ export default function CoinDetail() {
       try {
         setChartError(false);
         const res = await api.get(
-          `/coins/${encodeURIComponent(id)}/chart?days=${timeframe}`
+          `/coins/${encodeURIComponent(id)}/chart`,
+          {
+            params: {
+              days: timeframe,
+              currency: currency.toLowerCase()
+            }
+          }
         );
         if (!isMounted) return;
 
@@ -228,7 +211,7 @@ export default function CoinDetail() {
     return () => {
       isMounted = false;
     };
-  }, [id, timeframe]);
+  }, [id, timeframe, currency]);
 
   // The active chart data and its corresponding timeframe
   const currentChartData = chartState.data;
@@ -339,19 +322,10 @@ export default function CoinDetail() {
 
   const formatYAxis = (val) => {
     if (val === null || val === undefined) return '';
-    if (val >= 1000) {
-      return (
-        '$' +
-        Intl.NumberFormat('en-US', {
-          notation: 'compact',
-          maximumFractionDigits: 1
-        }).format(val)
-      );
+    if (Math.abs(val) >= 1000) {
+      return formatVolumeOrCap(val);
     }
-    if (val >= 1) {
-      return '$' + val.toFixed(2);
-    }
-    return '$' + val.toFixed(4);
+    return formatPrice(val);
   };
 
   // Loading skeleton state
@@ -718,13 +692,14 @@ export default function CoinDetail() {
                     tickLine={false}
                     axisLine={false}
                     orientation="right"
-                    width={68}
+                    width={76}
                   />
                   <Tooltip
                     content={
                       <CustomChartTooltip
                         timeframe={displayedTf}
                         startPrice={startPrice}
+                        formatPrice={formatPrice}
                       />
                     }
                   />

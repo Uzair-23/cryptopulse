@@ -5,44 +5,11 @@ import PriceChange from './PriceChange';
 import Sparkline from './Sparkline';
 import Pill from './Pill';
 import { getBasicRecommendation } from '../lib/recommendation';
-
-// Currency & volume formatters
-const currencyCompactFormatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  notation: 'compact',
-  maximumFractionDigits: 2
-});
-
-const currencyStandardFormatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2
-});
-
-const currencySubDollarFormatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  minimumFractionDigits: 4,
-  maximumFractionDigits: 6
-});
-
-function formatPrice(price) {
-  if (price === null || price === undefined || isNaN(price)) return '—';
-  if (price >= 1) {
-    return currencyStandardFormatter.format(price);
-  }
-  return currencySubDollarFormatter.format(price);
-}
-
-function formatVolumeOrCap(value) {
-  if (value === null || value === undefined || isNaN(value)) return '—';
-  return currencyCompactFormatter.format(value);
-}
+import { useCurrency } from '../context/CurrencyContext';
 
 export default function CoinCard({ coin }) {
   const navigate = useNavigate();
+  const { formatPrice, formatVolumeOrCap } = useCurrency();
 
   if (!coin) return null;
 
