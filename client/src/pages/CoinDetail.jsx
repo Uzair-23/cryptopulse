@@ -135,6 +135,7 @@ export default function CoinDetail() {
   });
   const [chartLoading, setChartLoading] = useState(false);
   const [hasLittleData, setHasLittleData] = useState(false);
+  const [chartError, setChartError] = useState(false);
 
   // 1. Fetch coin market data
   useEffect(() => {
@@ -181,6 +182,7 @@ export default function CoinDetail() {
 
     async function fetchChart() {
       try {
+        setChartError(false);
         const res = await api.get(
           `/coins/${encodeURIComponent(id)}/chart?days=${timeframe}`
         );
@@ -192,6 +194,7 @@ export default function CoinDetail() {
           setChartState({ data: [], timeframe });
         } else {
           setHasLittleData(false);
+          setChartError(false);
           const formatted = prices.map(([ts, price]) => ({
             timestamp: ts,
             price
@@ -200,7 +203,7 @@ export default function CoinDetail() {
         }
       } catch (err) {
         if (!isMounted) return;
-        setHasLittleData(true);
+        setChartError(true);
       } finally {
         if (isMounted) {
           setChartLoading(false);
@@ -549,7 +552,16 @@ export default function CoinDetail() {
 
         {/* Chart Viewport */}
         <div className="w-full h-[340px] sm:h-[380px] min-w-0 relative">
-          {hasLittleData ||
+          {chartError ? (
+            <div className="w-full h-full flex flex-col items-center justify-center text-textMuted text-sm border border-dashed border-border/60 rounded-lg p-6">
+              <span className="text-base font-medium text-text mb-1">
+                Couldn't load chart data
+              </span>
+              <span className="text-xs text-textMuted text-center max-w-sm">
+                There was a problem communicating with the server. Please try another timeframe or refresh.
+              </span>
+            </div>
+          ) : hasLittleData ||
           (currentChartData && currentChartData.length < 2) ? (
             <div className="w-full h-full flex flex-col items-center justify-center text-textMuted text-sm border border-dashed border-border/60 rounded-lg">
               <span className="text-base font-medium text-text mb-1">

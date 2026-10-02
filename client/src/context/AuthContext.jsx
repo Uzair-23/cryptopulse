@@ -17,12 +17,13 @@ export function AuthProvider({ children }) {
           setUser(res.data.user);
           setToken(storedToken);
         } catch (err) {
-          if (err.response?.status === 401 || err.response?.status === 403) {
-            localStorage.removeItem('token');
-            setToken(null);
-            setUser(null);
-          }
+          localStorage.removeItem('token');
+          setToken(null);
+          setUser(null);
         }
+      } else {
+        setToken(null);
+        setUser(null);
       }
       setLoading(false);
     }

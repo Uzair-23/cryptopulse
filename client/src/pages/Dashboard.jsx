@@ -203,7 +203,7 @@ export default function Dashboard() {
 
       {/* Table Container */}
       <div className="w-full overflow-x-auto border border-border rounded-lg bg-surface">
-        <table className="w-full text-left text-sm border-collapse">
+        <table className="w-full min-w-[900px] text-left text-sm border-collapse">
           <thead>
             <tr className="border-b border-border text-[11px] font-semibold text-textMuted uppercase tracking-wider bg-surface select-none">
               <th className="py-3 px-3 w-12 text-center">#</th>
