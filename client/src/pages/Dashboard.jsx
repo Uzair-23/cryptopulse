@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import api from '../lib/api';
 import CoinCard, { CoinCardSkeleton } from '../components/CoinCard';
 import { useCurrency } from '../context/CurrencyContext';
+import AiSummaryCard from '../components/AiSummaryCard';
 
 export default function Dashboard() {
   const { currency } = useCurrency();
@@ -131,6 +132,9 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      {/* AI Market Summary Card — fetches independently, never blocks coin grid */}
+      <AiSummaryCard />
 
       {/* Tabs: All / Gainers / Losers */}
       <div className="flex items-center gap-2 mb-6 border-b border-border pb-3">

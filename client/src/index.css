@@ -14,6 +14,7 @@
   --bear: #EF4444;
   --warn: #F59E0B;
   --star: #F2C94C;
+  --ai: #5B9BD5;
 }
 
 @theme {
@@ -32,6 +33,7 @@
   --color-bear: var(--bear);
   --color-warn: var(--warn);
   --color-star: var(--star);
+  --color-ai: var(--ai);
 }
 
 * {

@@ -22,6 +22,7 @@ export default {
         bear: 'var(--bear)',
         warn: 'var(--warn)',
         star: 'var(--star)',
+        ai: 'var(--ai)',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
