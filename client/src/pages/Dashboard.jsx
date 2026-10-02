@@ -1,46 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
 import api from '../lib/api';
-import PriceChange from '../components/PriceChange';
-import Sparkline from '../components/Sparkline';
-import CoinIcon from '../components/CoinIcon';
-import Pill from '../components/Pill';
-import { getBasicRecommendation } from '../lib/recommendation';
-
-// Currency formatters
-const currencyCompactFormatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  notation: 'compact',
-  maximumFractionDigits: 2
-});
-
-const currencyStandardFormatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2
-});
-
-const currencySubDollarFormatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  minimumFractionDigits: 4,
-  maximumFractionDigits: 6
-});
-
-function formatPrice(price) {
-  if (price === null || price === undefined || isNaN(price)) return '—';
-  if (price >= 1) {
-    return currencyStandardFormatter.format(price);
-  }
-  return currencySubDollarFormatter.format(price);
-}
-
-function formatVolumeOrCap(value) {
-  if (value === null || value === undefined || isNaN(value)) return '—';
-  return currencyCompactFormatter.format(value);
-}
+import CoinCard, { CoinCardSkeleton } from '../components/CoinCard';
 
 export default function Dashboard() {
   const [coins, setCoins] = useState([]);
@@ -48,8 +8,6 @@ export default function Dashboard() {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('all'); // 'all' | 'gainers' | 'losers'
   const [searchQuery, setSearchQuery] = useState('');
-
-  const navigate = useNavigate();
 
   useEffect(() => {
     let isMounted = true;
@@ -83,7 +41,7 @@ export default function Dashboard() {
   }, []);
 
   // Filter & sort coins based on active tab and search
-  const processedCoins = React.useMemo(() => {
+  const processedCoins = useMemo(() => {
     let list = [...coins];
 
     // 1. Search query filter
@@ -99,21 +57,39 @@ export default function Dashboard() {
     // 2. Tab sort & filter
     if (activeTab === 'gainers') {
       return list
-        .filter((c) => (c.price_change_percentage_24h_in_currency ?? c.price_change_percentage_24h ?? 0) > 0)
+        .filter(
+          (c) =>
+            (c.price_change_percentage_24h_in_currency ??
+              c.price_change_percentage_24h ??
+              0) > 0
+        )
         .sort(
           (a, b) =>
-            (b.price_change_percentage_24h_in_currency ?? b.price_change_percentage_24h ?? 0) -
-            (a.price_change_percentage_24h_in_currency ?? a.price_change_percentage_24h ?? 0)
+            (b.price_change_percentage_24h_in_currency ??
+              b.price_change_percentage_24h ??
+              0) -
+            (a.price_change_percentage_24h_in_currency ??
+              a.price_change_percentage_24h ??
+              0)
         );
     }
 
     if (activeTab === 'losers') {
       return list
-        .filter((c) => (c.price_change_percentage_24h_in_currency ?? c.price_change_percentage_24h ?? 0) < 0)
+        .filter(
+          (c) =>
+            (c.price_change_percentage_24h_in_currency ??
+              c.price_change_percentage_24h ??
+              0) < 0
+        )
         .sort(
           (a, b) =>
-            (a.price_change_percentage_24h_in_currency ?? a.price_change_percentage_24h ?? 0) -
-            (b.price_change_percentage_24h_in_currency ?? b.price_change_percentage_24h ?? 0)
+            (a.price_change_percentage_24h_in_currency ??
+              a.price_change_percentage_24h ??
+              0) -
+            (b.price_change_percentage_24h_in_currency ??
+              b.price_change_percentage_24h ??
+              0)
         );
     }
 
@@ -144,7 +120,7 @@ export default function Dashboard() {
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-textFaint hover:text-text text-xs"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-textMuted hover:text-text cursor-pointer"
             >
               ✕
             </button>
@@ -152,13 +128,13 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Tabs Row */}
-      <div className="flex items-center gap-2 mb-4 border-b border-border pb-3">
+      {/* Tabs: All / Gainers / Losers */}
+      <div className="flex items-center gap-2 mb-6 border-b border-border pb-3">
         <button
           onClick={() => setActiveTab('all')}
           className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
             activeTab === 'all'
-              ? 'bg-surface2 text-text border border-border/80'
+              ? 'bg-surface2 text-text border border-border'
               : 'text-textMuted hover:text-text hover:bg-surface2/50'
           }`}
         >
@@ -201,163 +177,26 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Table Container */}
-      <div className="w-full overflow-x-auto border border-border rounded-lg bg-surface">
-        <table className="w-full min-w-[900px] text-left text-sm border-collapse">
-          <thead>
-            <tr className="border-b border-border text-[11px] font-semibold text-textMuted uppercase tracking-wider bg-surface select-none">
-              <th className="py-3 px-3 w-12 text-center">#</th>
-              <th className="py-3 px-4 min-w-[180px]">Coin</th>
-              <th className="py-3 px-4 text-right">Price</th>
-              <th className="py-3 px-4 text-right">1h</th>
-              <th className="py-3 px-4 text-right">24h</th>
-              <th className="py-3 px-4 text-right">7d</th>
-              <th className="py-3 px-3 text-center min-w-[85px]">Signal</th>
-              <th className="py-3 px-4 text-right min-w-[110px]">24h Volume</th>
-              <th className="py-3 px-4 text-right min-w-[120px]">Market Cap</th>
-              <th className="py-3 px-4 text-center min-w-[140px]">Last 7 Days</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border/60">
-            {loading && coins.length === 0 ? (
-              // 10 Skeleton rows while loading
-              Array.from({ length: 10 }).map((_, i) => (
-                <tr key={i} className="animate-pulse h-14">
-                  <td className="py-3 px-3 text-center">
-                    <div className="h-3 w-4 bg-surface2 rounded mx-auto" />
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-6 h-6 rounded-full bg-surface2" />
-                      <div className="space-y-1">
-                        <div className="h-3 w-20 bg-surface2 rounded" />
-                        <div className="h-2 w-10 bg-surface2 rounded" />
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <div className="h-3 w-16 bg-surface2 rounded ml-auto" />
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <div className="h-3 w-12 bg-surface2 rounded ml-auto" />
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <div className="h-3 w-12 bg-surface2 rounded ml-auto" />
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <div className="h-3 w-12 bg-surface2 rounded ml-auto" />
-                  </td>
-                  <td className="py-3 px-3 text-center">
-                    <div className="h-5 w-16 bg-surface2 rounded-full mx-auto" />
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <div className="h-3 w-16 bg-surface2 rounded ml-auto" />
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <div className="h-3 w-20 bg-surface2 rounded ml-auto" />
-                  </td>
-                  <td className="py-3 px-4 text-center">
-                    <div className="h-6 w-24 bg-surface2 rounded mx-auto" />
-                  </td>
-                </tr>
-              ))
-            ) : processedCoins.length === 0 ? (
-              <tr>
-                <td colSpan={10} className="py-12 text-center text-textMuted text-xs">
-                  {searchQuery ? `No cryptocurrencies match "${searchQuery}"` : 'No market data available.'}
-                </td>
-              </tr>
-            ) : (
-              processedCoins.map((coin) => {
-                const change1h = coin.price_change_percentage_1h_in_currency;
-                const change24h = coin.price_change_percentage_24h_in_currency ?? coin.price_change_percentage_24h;
-                const change7d = coin.price_change_percentage_7d_in_currency;
-                const sparklineData = coin.sparkline_in_7d?.price || [];
-                const rec = getBasicRecommendation({
-                  change1h,
-                  change24h,
-                  change7d
-                });
-
-                return (
-                  <tr
-                    key={coin.id}
-                    onClick={() => navigate(`/coin/${coin.id}`)}
-                    className="hover:bg-surface2 transition-colors cursor-pointer group"
-                  >
-                    {/* Rank */}
-                    <td className="py-3 px-3 text-center text-xs text-textMuted tabular-nums">
-                      {coin.market_cap_rank || '—'}
-                    </td>
-
-                    {/* Coin: Icon + Name + Symbol */}
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2.5">
-                        <CoinIcon
-                          src={coin.image}
-                          symbol={coin.symbol}
-                          name={coin.name}
-                          size={24}
-                        />
-                        <div className="flex items-baseline gap-1.5 truncate">
-                          <span className="font-semibold text-text group-hover:text-accent transition-colors truncate">
-                            {coin.name}
-                          </span>
-                          <span className="text-xs text-textMuted uppercase font-medium">
-                            {coin.symbol}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Price */}
-                    <td className="py-3 px-4 text-right font-medium tabular-nums text-text">
-                      {formatPrice(coin.current_price)}
-                    </td>
-
-                    {/* 1h % */}
-                    <td className="py-3 px-4 text-right">
-                      <PriceChange value={change1h} />
-                    </td>
-
-                    {/* 24h % */}
-                    <td className="py-3 px-4 text-right">
-                      <PriceChange value={change24h} />
-                    </td>
-
-                    {/* 7d % */}
-                    <td className="py-3 px-4 text-right">
-                      <PriceChange value={change7d} />
-                    </td>
-
-                    {/* Signal */}
-                    <td className="py-3 px-3 text-center">
-                      <Pill variant={rec.label}>{rec.label}</Pill>
-                    </td>
-
-                    {/* 24h Volume */}
-                    <td className="py-3 px-4 text-right text-textMuted tabular-nums">
-                      {formatVolumeOrCap(coin.total_volume)}
-                    </td>
-
-                    {/* Market Cap */}
-                    <td className="py-3 px-4 text-right text-textMuted tabular-nums font-medium">
-                      {formatVolumeOrCap(coin.market_cap)}
-                    </td>
-
-                    {/* 7d Sparkline */}
-                    <td className="py-3 px-4 text-center">
-                      <div className="flex justify-center">
-                        <Sparkline data={sparklineData} width={120} height={32} />
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+      {/* Card Grid Container */}
+      {loading && coins.length === 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <CoinCardSkeleton key={i} />
+          ))}
+        </div>
+      ) : processedCoins.length === 0 ? (
+        <div className="w-full py-16 text-center text-textMuted text-sm bg-surface border border-border rounded-xl">
+          {searchQuery
+            ? `No cryptocurrencies match "${searchQuery}"`
+            : 'No market data available.'}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {processedCoins.map((coin) => (
+            <CoinCard key={coin.id} coin={coin} />
+          ))}
+        </div>
+      )}
     </main>
   );
 }
