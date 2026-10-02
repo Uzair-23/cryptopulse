@@ -4,11 +4,14 @@ import Navbar from './components/Navbar';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import CoinDetail from './pages/CoinDetail';
+import AlertWatcher from './components/AlertWatcher';
 
 export default function App() {
   return (
     <div className="min-h-screen bg-bg text-text flex flex-col">
+      <AlertWatcher />
       <Navbar />
+
       <div className="flex-1">
         <Routes>
           <Route path="/" element={<Dashboard />} />

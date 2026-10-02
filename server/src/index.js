@@ -43,12 +43,15 @@ const coinsRoutes = require('./routes/coins');
 const aiRoutes = require('./routes/ai');
 const watchlistRoutes = require('./routes/watchlist');
 const sentimentRoutes = require('./routes/sentiment');
+const alertsRoutes = require('./routes/alerts');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/coins', coinsRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/watchlist', watchlistRoutes);
 app.use('/api/sentiment', sentimentRoutes);
+app.use('/api/alerts', alertsRoutes);
+
 
 // Start server
 const PORT = process.env.PORT || 4000;

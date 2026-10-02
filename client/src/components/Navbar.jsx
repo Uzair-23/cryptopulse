@@ -3,12 +3,15 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { useWatchlist } from '../context/WatchlistContext';
+import { useAlerts } from '../context/AlertContext';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const { currency, setCurrency, currencies } = useCurrency();
   const { watchlist } = useWatchlist();
+  const { alertsCount } = useAlerts();
   const location = useLocation();
+
 
   const isWatchlistActive =
     location.pathname === '/watchlist' ||
@@ -84,7 +87,16 @@ export default function Navbar() {
                 <span className="text-xs font-medium text-text truncate max-w-[140px] sm:max-w-[200px]">
                   {user.identifier}
                 </span>
+                {alertsCount > 0 && (
+                  <span
+                    title={`${alertsCount} active price alert${alertsCount === 1 ? '' : 's'}`}
+                    className="ml-0.5 px-1.5 py-0.2 rounded-full bg-ai/20 text-ai text-[10px] font-bold border border-ai/30 select-none"
+                  >
+                    {alertsCount}
+                  </span>
+                )}
               </div>
+
               <button
                 onClick={logout}
                 className="px-3 py-1.5 text-xs font-medium text-textMuted hover:text-text rounded-md border border-border hover:bg-surface2 transition-colors cursor-pointer"

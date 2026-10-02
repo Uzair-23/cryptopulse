@@ -22,6 +22,8 @@ import { useWatchlist } from '../context/WatchlistContext';
 import CandleChart from '../components/CandleChart';
 import { mergeNormalizedSeries } from '../lib/normalize';
 import AiCoinInsightCard from '../components/AiCoinInsightCard';
+import CoinAlertCard from '../components/CoinAlertCard';
+
 
 
 const numberCompactFormatter = new Intl.NumberFormat('en-US', {
@@ -1222,8 +1224,12 @@ export default function CoinDetail() {
           {/* AI Coin Insight Card */}
           <AiCoinInsightCard coinId={id} />
 
+          {/* Price Alert Card */}
+          <CoinAlertCard coin={coin} />
+
           {/* b) Compact Stats Panel */}
           <div className="bg-surface border border-border rounded-xl p-4 sm:p-5">
+
 
             <div className="text-[11px] uppercase tracking-wider font-semibold text-textMuted mb-3.5">
               Key Statistics
