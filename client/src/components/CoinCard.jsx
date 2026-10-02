@@ -6,12 +6,16 @@ import Sparkline from './Sparkline';
 import Pill from './Pill';
 import { getBasicRecommendation } from '../lib/recommendation';
 import { useCurrency } from '../context/CurrencyContext';
+import { useWatchlist } from '../context/WatchlistContext';
 
 export default function CoinCard({ coin }) {
   const navigate = useNavigate();
   const { formatPrice, formatVolumeOrCap } = useCurrency();
+  const { isStarred, toggleWatchlist } = useWatchlist();
 
   if (!coin) return null;
+
+  const starred = isStarred(coin.id);
 
   const change1h = coin.price_change_percentage_1h_in_currency;
   const change24h =
@@ -31,7 +35,7 @@ export default function CoinCard({ coin }) {
       onClick={() => navigate(`/coin/${coin.id}`)}
       className="bg-surface border border-border rounded-xl p-4 sm:p-5 cursor-pointer flex flex-col justify-between gap-3.5 transition-all duration-150 hover:-translate-y-0.5 hover:border-white/30 hover:shadow-lg hover:shadow-black/40 group select-none"
     >
-      {/* 1. Header row: Icon + Name + Symbol on left, Rank on top-right */}
+      {/* 1. Header row: Icon + Name + Symbol on left, Rank & Watchlist Star on top-right */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2.5 min-w-0">
           <CoinIcon
@@ -50,9 +54,38 @@ export default function CoinCard({ coin }) {
           </div>
         </div>
 
-        <span className="text-xs text-textMuted font-semibold tabular-nums shrink-0">
-          #{coin.market_cap_rank ?? '—'}
-        </span>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-xs text-textMuted font-semibold tabular-nums">
+            #{coin.market_cap_rank ?? '—'}
+          </span>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleWatchlist(coin.id);
+            }}
+            title={starred ? 'Remove from watchlist' : 'Add to watchlist'}
+            aria-label={starred ? `Remove ${coin.name} from watchlist` : `Add ${coin.name} to watchlist`}
+            className="p-1 -mr-1 rounded hover:bg-surface2 transition-colors cursor-pointer group/star focus:outline-none"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill={starred ? 'currentColor' : 'none'}
+              stroke="currentColor"
+              strokeWidth={starred ? '0' : '2'}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={`w-4 h-4 transition-colors ${
+                starred
+                  ? 'text-star'
+                  : 'text-textFaint group-hover/star:text-star/80'
+              }`}
+            >
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* 2. Price row: current price large and bold */}

@@ -51,7 +51,8 @@ router.post('/signup', async (req, res) => {
       token,
       user: {
         id: user._id,
-        identifier: user.email || user.username
+        identifier: user.email || user.username,
+        watchlist: user.watchlist || []
       }
     });
   } catch (err) {
@@ -92,7 +93,8 @@ router.post('/login', async (req, res) => {
       token,
       user: {
         id: user._id,
-        identifier: user.email || user.username
+        identifier: user.email || user.username,
+        watchlist: user.watchlist || []
       }
     });
   } catch (err) {
@@ -112,7 +114,8 @@ router.get('/me', authMiddleware, async (req, res) => {
     return res.json({
       user: {
         id: user._id,
-        identifier: user.email || user.username
+        identifier: user.email || user.username,
+        watchlist: user.watchlist || []
       }
     });
   } catch (err) {

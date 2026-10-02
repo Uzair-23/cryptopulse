@@ -2,13 +2,20 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
+import { useWatchlist } from '../context/WatchlistContext';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
   const { currency, setCurrency, currencies } = useCurrency();
+  const { watchlist } = useWatchlist();
   const location = useLocation();
 
-  const isMarketsActive = location.pathname === '/' || location.pathname.startsWith('/coin/');
+  const isWatchlistActive =
+    location.pathname === '/watchlist' ||
+    location.search.includes('tab=watchlist');
+  const isMarketsActive =
+    (location.pathname === '/' || location.pathname.startsWith('/coin/')) &&
+    !isWatchlistActive;
 
   return (
     <header className="sticky top-0 z-50 w-full bg-surface border-b border-border">
@@ -35,15 +42,21 @@ export default function Navbar() {
             >
               Markets
             </Link>
-            <span
-              className="px-3 py-1.5 text-sm font-medium text-textFaint flex items-center gap-1.5 cursor-not-allowed select-none"
-              title="Watchlist coming soon"
+            <Link
+              to="/?tab=watchlist"
+              className={`px-3 py-1.5 rounded-md text-sm font-medium flex items-center gap-1.5 transition-colors ${
+                isWatchlistActive
+                  ? 'text-text bg-surface2'
+                  : 'text-textMuted hover:text-text hover:bg-surface2/50'
+              }`}
             >
               Watchlist
-              <span className="text-[10px] px-1.5 py-0.2 rounded bg-surface2 text-textMuted uppercase tracking-wider font-semibold">
-                Soon
-              </span>
-            </span>
+              {user && watchlist.length > 0 && (
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-400/20 text-star font-bold">
+                  {watchlist.length}
+                </span>
+              )}
+            </Link>
           </nav>
         </div>
 

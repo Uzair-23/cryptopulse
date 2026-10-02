@@ -19,6 +19,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  watchlist: {
+    type: [String],
+    default: []
+  },
   createdAt: {
     type: Date,
     default: Date.now

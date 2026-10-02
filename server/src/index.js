@@ -41,10 +41,12 @@ app.get('/api/health', (req, res) => {
 const authRoutes = require('./routes/auth');
 const coinsRoutes = require('./routes/coins');
 const aiRoutes = require('./routes/ai');
+const watchlistRoutes = require('./routes/watchlist');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/coins', coinsRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/watchlist', watchlistRoutes);
 
 // Start server
 const PORT = process.env.PORT || 4000;

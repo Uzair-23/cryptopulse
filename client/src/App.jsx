@@ -12,6 +12,7 @@ export default function App() {
       <div className="flex-1">
         <Routes>
           <Route path="/" element={<Dashboard />} />
+          <Route path="/watchlist" element={<Dashboard initialTab="watchlist" />} />
           <Route path="/login" element={<Login />} />
           <Route path="/coin/:id" element={<CoinDetail />} />
         </Routes>

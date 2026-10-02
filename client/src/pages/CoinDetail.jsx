@@ -17,6 +17,7 @@ import Pill from '../components/Pill';
 import { getBasicRecommendation } from '../lib/recommendation';
 import TickerTape from '../components/TickerTape';
 import { useCurrency } from '../context/CurrencyContext';
+import { useWatchlist } from '../context/WatchlistContext';
 
 const numberCompactFormatter = new Intl.NumberFormat('en-US', {
   notation: 'compact',
@@ -99,6 +100,7 @@ function CustomChartTooltip({
 export default function CoinDetail() {
   const { id } = useParams();
   const { currency, formatPrice, formatVolumeOrCap } = useCurrency();
+  const { isStarred, toggleWatchlist } = useWatchlist();
 
   const [coin, setCoin] = useState(null);
   const [coins, setCoins] = useState([]);
@@ -483,6 +485,31 @@ export default function CoinDetail() {
               Rank #{coin.market_cap_rank}
             </span>
           )}
+          <button
+            type="button"
+            onClick={() => toggleWatchlist(coin.id)}
+            title={isStarred(coin.id) ? 'Remove from watchlist' : 'Add to watchlist'}
+            aria-label={isStarred(coin.id) ? `Remove ${coin.name} from watchlist` : `Add ${coin.name} to watchlist`}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer select-none ${
+              isStarred(coin.id)
+                ? 'bg-amber-400/10 border-amber-400/40 text-star shadow-sm'
+                : 'bg-surface2 border-border text-textMuted hover:text-text hover:border-textMuted'
+            }`}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill={isStarred(coin.id) ? 'currentColor' : 'none'}
+              stroke="currentColor"
+              strokeWidth={isStarred(coin.id) ? '0' : '2'}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-3.5 h-3.5"
+            >
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+            </svg>
+            <span>{isStarred(coin.id) ? 'In Watchlist' : 'Watchlist'}</span>
+          </button>
         </div>
 
         {/* Horizontal row of label-over-value stat blocks */}
