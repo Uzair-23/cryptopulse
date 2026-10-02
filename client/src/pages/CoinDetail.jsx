@@ -18,6 +18,7 @@ import { getBasicRecommendation } from '../lib/recommendation';
 import TickerTape from '../components/TickerTape';
 import { useCurrency } from '../context/CurrencyContext';
 import { useWatchlist } from '../context/WatchlistContext';
+import CandleChart from '../components/CandleChart';
 
 const numberCompactFormatter = new Intl.NumberFormat('en-US', {
   notation: 'compact',
@@ -107,6 +108,7 @@ export default function CoinDetail() {
   const [coinLoading, setCoinLoading] = useState(true);
   const [coinNotFound, setCoinNotFound] = useState(false);
 
+  const [chartType, setChartType] = useState('line'); // 'line' | 'candles'
   const [timeframe, setTimeframe] = useState('7');
   const [chartState, setChartState] = useState({
     data: null,
@@ -115,6 +117,13 @@ export default function CoinDetail() {
   const [chartLoading, setChartLoading] = useState(false);
   const [hasLittleData, setHasLittleData] = useState(false);
   const [chartError, setChartError] = useState(false);
+
+  const [candleState, setCandleState] = useState({
+    data: null,
+    timeframe: '7'
+  });
+  const [candleLoading, setCandleLoading] = useState(false);
+  const [candleError, setCandleError] = useState(false);
 
   // 1. Fetch coin market data
   useEffect(() => {
@@ -214,6 +223,52 @@ export default function CoinDetail() {
       isMounted = false;
     };
   }, [id, timeframe, currency]);
+
+  // 3. Fetch OHLC candle data when chartType === 'candles' or timeframe changes
+  useEffect(() => {
+    let isMounted = true;
+    if (chartType !== 'candles') return;
+
+    setCandleLoading(true);
+
+    async function fetchCandles() {
+      try {
+        setCandleError(false);
+        const res = await api.get(
+          `/coins/${encodeURIComponent(id)}/ohlc`,
+          {
+            params: {
+              days: timeframe,
+              currency: currency.toLowerCase()
+            }
+          }
+        );
+        if (!isMounted) return;
+
+        const candles = res.data;
+        if (!candles || !Array.isArray(candles) || candles.length === 0) {
+          setCandleState({ data: [], timeframe });
+        } else {
+          setCandleState({ data: candles, timeframe });
+        }
+      } catch (err) {
+        if (!isMounted) return;
+        setCandleError(true);
+      } finally {
+        if (isMounted) {
+          setCandleLoading(false);
+        }
+      }
+    }
+
+    if (id) {
+      fetchCandles();
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id, timeframe, currency, chartType]);
 
   // The active chart data and its corresponding timeframe
   const currentChartData = chartState.data;
@@ -613,12 +668,38 @@ export default function CoinDetail() {
             </div>
 
             <div className="flex items-center gap-3">
-              {chartLoading && (
+              {(chartType === 'line' ? chartLoading : candleLoading) && (
                 <span className="text-xs text-textMuted flex items-center gap-1.5 animate-pulse">
                   <span className="w-1.5 h-1.5 rounded-full bg-accent" />
                   Updating...
                 </span>
               )}
+
+              {/* Chart Type Toggle: Line | Candles */}
+              <div className="inline-flex p-1 bg-bg border border-border rounded-lg gap-1">
+                <button
+                  type="button"
+                  onClick={() => setChartType('line')}
+                  className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
+                    chartType === 'line'
+                      ? 'bg-surface2 text-text shadow-sm'
+                      : 'text-textMuted hover:text-text'
+                  }`}
+                >
+                  Line
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChartType('candles')}
+                  className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
+                    chartType === 'candles'
+                      ? 'bg-surface2 text-text shadow-sm'
+                      : 'text-textMuted hover:text-text'
+                  }`}
+                >
+                  Candles
+                </button>
+              </div>
 
               {/* Segmented Control Switcher */}
               <div className="inline-flex p-1 bg-bg border border-border rounded-lg gap-1">
@@ -645,7 +726,34 @@ export default function CoinDetail() {
 
           {/* Chart Viewport (Expanded vertical height) */}
           <div className="w-full h-[440px] sm:h-[480px] min-w-0 relative">
-            {chartError ? (
+            {chartType === 'candles' ? (
+              candleError ? (
+                <div className="w-full h-full flex flex-col items-center justify-center text-textMuted text-sm border border-dashed border-border/60 rounded-lg p-6">
+                  <span className="text-base font-medium text-text mb-1">
+                    Couldn't load candle data
+                  </span>
+                  <span className="text-xs text-textMuted text-center max-w-sm">
+                    There was a problem communicating with the server. Please try
+                    another timeframe or refresh.
+                  </span>
+                </div>
+              ) : !candleState.data && candleLoading ? (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Skeleton className="w-full h-full rounded" />
+                </div>
+              ) : candleState.data && candleState.data.length === 0 ? (
+                <div className="w-full h-full flex flex-col items-center justify-center text-textMuted text-sm border border-dashed border-border/60 rounded-lg">
+                  <span className="text-base font-medium text-text mb-1">
+                    Not enough candle data yet
+                  </span>
+                  <span className="text-xs">
+                    OHLC history is currently unavailable for this timeframe.
+                  </span>
+                </div>
+              ) : (
+                <CandleChart data={candleState.data || []} height={440} />
+              )
+            ) : chartError ? (
               <div className="w-full h-full flex flex-col items-center justify-center text-textMuted text-sm border border-dashed border-border/60 rounded-lg p-6">
                 <span className="text-base font-medium text-text mb-1">
                   Couldn't load chart data
