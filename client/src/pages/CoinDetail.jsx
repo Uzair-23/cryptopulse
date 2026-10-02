@@ -13,6 +13,8 @@ import api from '../lib/api';
 import CoinIcon from '../components/CoinIcon';
 import PriceChange from '../components/PriceChange';
 import Skeleton from '../components/Skeleton';
+import Pill from '../components/Pill';
+import { getBasicRecommendation } from '../lib/recommendation';
 
 // Currency & number formatters
 const currencyCompactFormatter = new Intl.NumberFormat('en-US', {
@@ -273,6 +275,17 @@ export default function CoinDetail() {
       };
     }, [currentChartData, displayedTf, coin]);
 
+  const recommendation = useMemo(() => {
+    if (!coin) return null;
+    return getBasicRecommendation({
+      change1h: coin.price_change_percentage_1h_in_currency,
+      change24h:
+        coin.price_change_percentage_24h_in_currency ??
+        coin.price_change_percentage_24h,
+      change7d: coin.price_change_percentage_7d_in_currency
+    });
+  }, [coin]);
+
   const isNetUp = (tfChangeAmount ?? 0) >= 0;
   const strokeColor = isNetUp ? '#22C55E' : '#EF4444';
 
@@ -353,6 +366,13 @@ export default function CoinDetail() {
             <Skeleton className="w-48 h-10 rounded" />
             <Skeleton className="w-24 h-6 rounded" />
             <Skeleton className="w-20 h-6 rounded" />
+          </div>
+          <div className="mt-3.5 pt-3 border-t border-border/60 space-y-1.5">
+            <div className="flex items-center gap-2.5">
+              <Skeleton className="w-16 h-5 rounded-full" />
+              <Skeleton className="w-48 h-4 rounded" />
+            </div>
+            <Skeleton className="w-44 h-3 rounded" />
           </div>
         </div>
 
@@ -469,6 +489,23 @@ export default function CoinDetail() {
             {activeTfLabel}
           </span>
         </div>
+
+        {/* Recommendation badge & reason right under header */}
+        {recommendation && (
+          <div className="mt-4 pt-3.5 border-t border-border/60">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <Pill variant={recommendation.label}>
+                {recommendation.label}
+              </Pill>
+              <span className="text-xs sm:text-sm text-text font-medium">
+                {recommendation.reason}
+              </span>
+            </div>
+            <p className="text-[11px] text-textMuted mt-1.5">
+              Educational only — not financial advice.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Chart & Stats Card */}

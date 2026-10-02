@@ -4,6 +4,8 @@ import api from '../lib/api';
 import PriceChange from '../components/PriceChange';
 import Sparkline from '../components/Sparkline';
 import CoinIcon from '../components/CoinIcon';
+import Pill from '../components/Pill';
+import { getBasicRecommendation } from '../lib/recommendation';
 
 // Currency formatters
 const currencyCompactFormatter = new Intl.NumberFormat('en-US', {
@@ -210,6 +212,7 @@ export default function Dashboard() {
               <th className="py-3 px-4 text-right">1h</th>
               <th className="py-3 px-4 text-right">24h</th>
               <th className="py-3 px-4 text-right">7d</th>
+              <th className="py-3 px-3 text-center min-w-[85px]">Signal</th>
               <th className="py-3 px-4 text-right min-w-[110px]">24h Volume</th>
               <th className="py-3 px-4 text-right min-w-[120px]">Market Cap</th>
               <th className="py-3 px-4 text-center min-w-[140px]">Last 7 Days</th>
@@ -244,6 +247,9 @@ export default function Dashboard() {
                   <td className="py-3 px-4 text-right">
                     <div className="h-3 w-12 bg-surface2 rounded ml-auto" />
                   </td>
+                  <td className="py-3 px-3 text-center">
+                    <div className="h-5 w-16 bg-surface2 rounded-full mx-auto" />
+                  </td>
                   <td className="py-3 px-4 text-right">
                     <div className="h-3 w-16 bg-surface2 rounded ml-auto" />
                   </td>
@@ -257,7 +263,7 @@ export default function Dashboard() {
               ))
             ) : processedCoins.length === 0 ? (
               <tr>
-                <td colSpan={9} className="py-12 text-center text-textMuted text-xs">
+                <td colSpan={10} className="py-12 text-center text-textMuted text-xs">
                   {searchQuery ? `No cryptocurrencies match "${searchQuery}"` : 'No market data available.'}
                 </td>
               </tr>
@@ -267,6 +273,11 @@ export default function Dashboard() {
                 const change24h = coin.price_change_percentage_24h_in_currency ?? coin.price_change_percentage_24h;
                 const change7d = coin.price_change_percentage_7d_in_currency;
                 const sparklineData = coin.sparkline_in_7d?.price || [];
+                const rec = getBasicRecommendation({
+                  change1h,
+                  change24h,
+                  change7d
+                });
 
                 return (
                   <tr
@@ -317,6 +328,11 @@ export default function Dashboard() {
                     {/* 7d % */}
                     <td className="py-3 px-4 text-right">
                       <PriceChange value={change7d} />
+                    </td>
+
+                    {/* Signal */}
+                    <td className="py-3 px-3 text-center">
+                      <Pill variant={rec.label}>{rec.label}</Pill>
                     </td>
 
                     {/* 24h Volume */}
