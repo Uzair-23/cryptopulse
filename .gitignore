@@ -1,0 +1,230 @@
+# ------------------------------------------------------------
+# Dependencies
+# ------------------------------------------------------------
+node_modules/
+.pnpm-store/
+
+# ------------------------------------------------------------
+# Environment / Secrets
+# ------------------------------------------------------------
+.env
+.env.*
+!.env.example
+
+# Local environment files
+apps/api/.env
+apps/api/.env.*
+apps/web/.env
+apps/web/.env.*
+server/.env*
+
+# Certificates / private keys
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# ------------------------------------------------------------
+# Build / Distribution
+# ------------------------------------------------------------
+dist/
+build/
+out/
+.tmp/
+.temp/
+.cache/
+
+# Vite
+apps/web/dist/
+
+# API build output
+apps/api/dist/
+
+# ------------------------------------------------------------
+# Test / Coverage
+# ------------------------------------------------------------
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+*.lcov
+
+# Vitest
+.vitest/
+
+# ------------------------------------------------------------
+# Logs
+# ------------------------------------------------------------
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ------------------------------------------------------------
+# Runtime / Local Data
+# ------------------------------------------------------------
+*.pid
+*.pid.lock
+*.seed
+
+# Local databases / SQLite if ever created
+*.sqlite
+*.sqlite3
+*.db
+
+# ------------------------------------------------------------
+# IDE / Editors
+# ------------------------------------------------------------
+
+# VS Code
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# JetBrains
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Antigravity / AI-agent local state
+.antigravity/
+.agents/
+.agent/
+.ai/
+.ai-cache/
+
+# Cursor
+.cursor/
+
+# Claude
+.claude/
+
+# GitHub Copilot local state
+.github/copilot/
+
+# ------------------------------------------------------------
+# OS-generated files
+# ------------------------------------------------------------
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+.directory
+
+# ------------------------------------------------------------
+# Vercel
+# ------------------------------------------------------------
+.vercel/
+
+# ------------------------------------------------------------
+# Render / deployment artifacts
+# ------------------------------------------------------------
+.render/
+
+# ------------------------------------------------------------
+# Generated documentation / temporary exports
+# ------------------------------------------------------------
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# ------------------------------------------------------------
+# Project-private documentation
+# ------------------------------------------------------------
+
+# Ignore the entire docs directory.
+# This keeps PRD / PLAN / DESIGN private and out of Git.
+docs/
+
+# ------------------------------------------------------------
+# Local scripts / scratch files
+# ------------------------------------------------------------
+scratch/
+scratch.*
+tmp/
+tmp.*
+local/
+local.*
+
+# ------------------------------------------------------------
+# Generated fixtures / local recordings
+# ------------------------------------------------------------
+
+# Ignore locally generated raw provider fixtures if needed
+*.raw.json
+
+# Ignore local debug fixture output
+fixtures/local/
+apps/api/test/fixtures/local/
+
+# ------------------------------------------------------------
+# Python artifacts
+# ------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# ------------------------------------------------------------
+# TypeScript / tooling caches
+# ------------------------------------------------------------
+*.tsbuildinfo
+
+# ESLint
+.eslintcache
+
+# Prettier
+.prettier-cache
+
+# ------------------------------------------------------------
+# Package-manager temporary files
+# ------------------------------------------------------------
+.npm/
+.yarn/
+.pnp.*
+.yarnrc.yml
+
+# ------------------------------------------------------------
+# Generated source maps
+# ------------------------------------------------------------
+*.map
+
+# ------------------------------------------------------------
+# Misc generated files
+# ------------------------------------------------------------
+*.orig
+*.rej
+*.bak
+
+# ------------------------------------------------------------
+# Local machine configuration
+# ------------------------------------------------------------
+*.local
