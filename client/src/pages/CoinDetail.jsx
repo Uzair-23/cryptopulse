@@ -4,6 +4,7 @@ import {
   ResponsiveContainer,
   AreaChart,
   Area,
+  Line,
   XAxis,
   YAxis,
   Tooltip,
@@ -19,6 +20,7 @@ import TickerTape from '../components/TickerTape';
 import { useCurrency } from '../context/CurrencyContext';
 import { useWatchlist } from '../context/WatchlistContext';
 import CandleChart from '../components/CandleChart';
+import { mergeNormalizedSeries } from '../lib/normalize';
 
 const numberCompactFormatter = new Intl.NumberFormat('en-US', {
   notation: 'compact',
@@ -43,7 +45,10 @@ function CustomChartTooltip({
   payload,
   timeframe,
   startPrice,
-  formatPrice: propFormatPrice
+  formatPrice: propFormatPrice,
+  isComparing = false,
+  primaryCoin,
+  compareCoin
 }) {
   const { formatPrice: contextFormatPrice } = useCurrency();
   const formatPrice = propFormatPrice || contextFormatPrice;
@@ -66,6 +71,60 @@ function CustomChartTooltip({
             minute: '2-digit',
             hour12: false
           });
+
+    if (isComparing) {
+      return (
+        <div className="bg-surface border border-border px-3.5 py-2.5 rounded-lg shadow-xl text-xs select-none min-w-[200px]">
+          <p className="text-textMuted mb-2 font-medium">{dateStr}</p>
+
+          {/* Primary coin */}
+          <div className="mb-2 pb-2 border-b border-border/60">
+            <div className="flex items-center justify-between gap-3 mb-0.5">
+              <div className="flex items-center gap-1.5 font-semibold text-text">
+                <span className="w-2.5 h-0.5 rounded-full bg-accent inline-block" />
+                <span>{primaryCoin?.name || 'Primary'}</span>
+              </div>
+              <span
+                className={`font-semibold tabular-nums ${
+                  (data.primaryPct ?? 0) >= 0 ? 'text-bull' : 'text-bear'
+                }`}
+              >
+                {(data.primaryPct ?? 0) >= 0 ? '+' : ''}
+                {data.primaryPct !== undefined ? data.primaryPct.toFixed(2) : '0.00'}%
+              </span>
+            </div>
+            {data.primaryPrice !== undefined && (
+              <p className="text-textMuted text-[11px] tabular-nums">
+                {formatPrice(data.primaryPrice)}
+              </p>
+            )}
+          </div>
+
+          {/* Comparison coin */}
+          <div>
+            <div className="flex items-center justify-between gap-3 mb-0.5">
+              <div className="flex items-center gap-1.5 font-semibold text-text">
+                <span className="w-2.5 h-0.5 border-b border-dashed border-[#A78BFA] inline-block" />
+                <span>{compareCoin?.name || 'Comparison'}</span>
+              </div>
+              <span
+                className={`font-semibold tabular-nums ${
+                  (data.comparePct ?? 0) >= 0 ? 'text-bull' : 'text-bear'
+                }`}
+              >
+                {(data.comparePct ?? 0) >= 0 ? '+' : ''}
+                {data.comparePct !== undefined ? data.comparePct.toFixed(2) : '0.00'}%
+              </span>
+            </div>
+            {data.comparePrice !== undefined && (
+              <p className="text-textMuted text-[11px] tabular-nums">
+                {formatPrice(data.comparePrice)}
+              </p>
+            )}
+          </div>
+        </div>
+      );
+    }
 
     const diff =
       startPrice !== null && startPrice !== undefined
@@ -98,6 +157,7 @@ function CustomChartTooltip({
   return null;
 }
 
+
 export default function CoinDetail() {
   const { id } = useParams();
   const { currency, formatPrice, formatVolumeOrCap } = useCurrency();
@@ -125,10 +185,23 @@ export default function CoinDetail() {
   const [candleLoading, setCandleLoading] = useState(false);
   const [candleError, setCandleError] = useState(false);
 
+  // Comparison state (Line mode only)
+  const [compareCoinId, setCompareCoinId] = useState(null);
+  const [compareChartData, setCompareChartData] = useState(null);
+  const [compareLoading, setCompareLoading] = useState(false);
+  const [compareError, setCompareError] = useState(false);
+
   // Technical indicator states for CandleChart
   const [showSma20, setShowSma20] = useState(true);
   const [showSma50, setShowSma50] = useState(true);
   const [showRsi, setShowRsi] = useState(false);
+
+  // Lookup the comparison coin object from the already-fetched top-100 coins list
+  const compareCoin = useMemo(() => {
+    if (!compareCoinId || !coins.length) return null;
+    return coins.find((c) => c.id === compareCoinId) || null;
+  }, [compareCoinId, coins]);
+
 
   // 1. Fetch coin market data
   useEffect(() => {
@@ -275,12 +348,88 @@ export default function CoinDetail() {
     };
   }, [id, timeframe, currency, chartType]);
 
+  // 4. Reset comparison if primary coin changes
+  useEffect(() => {
+    setCompareCoinId(null);
+    setCompareChartData(null);
+  }, [id]);
+
+  // 5. Fetch comparison chart data when compareCoinId, timeframe, currency, or chartType changes
+  useEffect(() => {
+    let isMounted = true;
+    if (!compareCoinId || chartType !== 'line') {
+      setCompareChartData(null);
+      setCompareLoading(false);
+      setCompareError(false);
+      return;
+    }
+
+    setCompareLoading(true);
+    setCompareError(false);
+
+    async function fetchCompareChart() {
+      try {
+        const res = await api.get(
+          `/coins/${encodeURIComponent(compareCoinId)}/chart`,
+          {
+            params: {
+              days: timeframe,
+              currency: currency.toLowerCase()
+            }
+          }
+        );
+        if (!isMounted) return;
+
+        const prices = res.data?.prices;
+        if (!prices || !Array.isArray(prices) || prices.length < 2) {
+          setCompareChartData([]);
+        } else {
+          const formatted = prices.map(([ts, price]) => ({
+            timestamp: ts,
+            price
+          }));
+          setCompareChartData(formatted);
+        }
+      } catch (err) {
+        if (!isMounted) return;
+        setCompareError(true);
+      } finally {
+        if (isMounted) {
+          setCompareLoading(false);
+        }
+      }
+    }
+
+    fetchCompareChart();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [compareCoinId, timeframe, currency, chartType]);
+
   // The active chart data and its corresponding timeframe
   const currentChartData = chartState.data;
   const displayedTf = chartState.timeframe;
   const activeTfObj =
     TIMEFRAMES.find((tf) => tf.days === displayedTf) || TIMEFRAMES[1];
   const activeTfLabel = activeTfObj.label;
+
+  // Comparison active state: requires line mode, selected compare coin, and valid data series for both
+  const isComparing = Boolean(
+    chartType === 'line' &&
+    compareCoinId &&
+    compareChartData &&
+    compareChartData.length >= 2 &&
+    currentChartData &&
+    currentChartData.length >= 2
+  );
+
+  // Normalized combined series for Recharts
+  const rechartsData = useMemo(() => {
+    if (!isComparing) return currentChartData || [];
+    return mergeNormalizedSeries(currentChartData, compareChartData);
+  }, [isComparing, currentChartData, compareChartData]);
+
 
   // Calculate profit/loss for the displayed timeframe
   const { startPrice, currentPrice, tfChangeAmount, tfChangePercent } =
@@ -389,6 +538,12 @@ export default function CoinDetail() {
     }
     return formatPrice(val);
   };
+
+  const formatCompareYAxis = (val) => {
+    if (val === null || val === undefined || isNaN(val)) return '';
+    return `${val >= 0 ? '+' : ''}${val.toFixed(1)}%`;
+  };
+
 
   // Loading skeleton state
   if (coinLoading) {
@@ -673,11 +828,59 @@ export default function CoinDetail() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              {(chartType === 'line' ? chartLoading : candleLoading) && (
+              {(chartType === 'line' ? (chartLoading || compareLoading) : candleLoading) && (
                 <span className="text-xs text-textMuted flex items-center gap-1.5 animate-pulse">
                   <span className="w-1.5 h-1.5 rounded-full bg-accent" />
                   Updating...
                 </span>
+              )}
+
+              {/* Compare with... dropdown (visible only in Line mode) */}
+              {chartType === 'line' && (
+                <div className="flex items-center gap-1.5">
+                  <div className="relative">
+                    <select
+                      value={compareCoinId || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setCompareCoinId(val || null);
+                        if (!val) {
+                          setCompareChartData(null);
+                        }
+                      }}
+                      aria-label="Compare with another cryptocurrency"
+                      className="text-xs font-medium bg-bg border border-border text-text rounded-lg pl-2.5 pr-7 py-1 appearance-none cursor-pointer focus:outline-none focus:border-accent hover:border-textMuted transition-colors"
+                    >
+                      <option value="">
+                        {compareCoinId ? 'Clear comparison' : 'Compare with...'}
+                      </option>
+                      {coins
+                        .filter((c) => c.id !== coin?.id)
+                        .map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name} ({c.symbol.toUpperCase()})
+                          </option>
+                        ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-textMuted text-[10px]">
+                      ▼
+                    </div>
+                  </div>
+                  {compareCoinId && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCompareCoinId(null);
+                        setCompareChartData(null);
+                      }}
+                      className="px-2 py-1 text-xs font-medium text-textMuted hover:text-text bg-bg border border-border rounded-lg transition-colors cursor-pointer"
+                      title="Clear comparison"
+                      aria-label="Clear comparison"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
               )}
 
               {/* Technical Indicator Toggles (visible only in Candles mode) */}
@@ -749,7 +952,11 @@ export default function CoinDetail() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setChartType('candles')}
+                  onClick={() => {
+                    setChartType('candles');
+                    setCompareCoinId(null);
+                    setCompareChartData(null);
+                  }}
                   className={`px-3 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
                     chartType === 'candles'
                       ? 'bg-surface2 text-text shadow-sm'
@@ -781,7 +988,60 @@ export default function CoinDetail() {
                 })}
               </div>
             </div>
+
           </div>
+
+          {/* Comparison Legend (visible only when comparison is active) */}
+          {isComparing && (
+            <div className="flex flex-wrap items-center gap-3 sm:gap-5 mb-3 px-3 py-2 bg-surface2/60 border border-border rounded-lg text-xs select-none">
+              {/* Primary coin */}
+              <div className="flex items-center gap-2 font-medium text-text">
+                <span
+                  className="w-4 h-0.5 rounded-full inline-block shrink-0"
+                  style={{ backgroundColor: strokeColor }}
+                />
+                <span className="font-semibold">
+                  {coin.name} ({coin.symbol.toUpperCase()})
+                </span>
+                {rechartsData.length > 0 && (
+                  <span
+                    className={`font-semibold tabular-nums ${
+                      rechartsData[rechartsData.length - 1].primaryPct >= 0
+                        ? 'text-bull'
+                        : 'text-bear'
+                    }`}
+                  >
+                    {rechartsData[rechartsData.length - 1].primaryPct >= 0 ? '+' : ''}
+                    {rechartsData[rechartsData.length - 1].primaryPct.toFixed(2)}%
+                  </span>
+                )}
+              </div>
+
+              {/* Comparison coin */}
+              <div className="flex items-center gap-2 font-medium text-text">
+                <span className="w-4 h-0.5 inline-block border-b-2 border-dashed border-[#A78BFA] shrink-0" />
+                <span className="font-semibold">
+                  {compareCoin?.name || 'Comparison'} ({compareCoin?.symbol?.toUpperCase() || ''})
+                </span>
+                {rechartsData.length > 0 && rechartsData[rechartsData.length - 1].comparePct !== undefined && (
+                  <span
+                    className={`font-semibold tabular-nums ${
+                      rechartsData[rechartsData.length - 1].comparePct >= 0
+                        ? 'text-bull'
+                        : 'text-bear'
+                    }`}
+                  >
+                    {rechartsData[rechartsData.length - 1].comparePct >= 0 ? '+' : ''}
+                    {rechartsData[rechartsData.length - 1].comparePct.toFixed(2)}%
+                  </span>
+                )}
+              </div>
+
+              <span className="text-[11px] text-textMuted ml-auto hidden sm:inline">
+                Normalized % change ({activeTfLabel})
+              </span>
+            </div>
+          )}
 
           {/* Chart Viewport (Expanded vertical height) */}
           <div className="w-full h-[440px] sm:h-[480px] min-w-0 relative">
@@ -846,7 +1106,7 @@ export default function CoinDetail() {
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
-                  data={currentChartData}
+                  data={isComparing ? rechartsData : currentChartData}
                   margin={{ top: 10, right: 10, left: 10, bottom: 0 }}
                 >
                   <defs>
@@ -886,13 +1146,13 @@ export default function CoinDetail() {
                   />
                   <YAxis
                     domain={['auto', 'auto']}
-                    tickFormatter={formatYAxis}
+                    tickFormatter={isComparing ? formatCompareYAxis : formatYAxis}
                     stroke="#8A94A3"
                     tick={{ fill: '#8A94A3', fontSize: 11 }}
                     tickLine={false}
                     axisLine={false}
                     orientation="right"
-                    width={76}
+                    width={isComparing ? 64 : 76}
                   />
                   <Tooltip
                     content={
@@ -900,22 +1160,39 @@ export default function CoinDetail() {
                         timeframe={displayedTf}
                         startPrice={startPrice}
                         formatPrice={formatPrice}
+                        isComparing={isComparing}
+                        primaryCoin={coin}
+                        compareCoin={compareCoin}
                       />
                     }
                   />
                   <Area
                     type="monotone"
-                    dataKey="price"
+                    dataKey={isComparing ? "primaryPct" : "price"}
                     stroke={strokeColor}
                     strokeWidth={2}
                     fillOpacity={1}
                     fill="url(#coinPriceGradient)"
                     isAnimationActive={false}
+                    name={coin.name}
                   />
+                  {isComparing && (
+                    <Line
+                      type="monotone"
+                      dataKey="comparePct"
+                      stroke="#A78BFA"
+                      strokeWidth={2}
+                      strokeDasharray="4 4"
+                      dot={false}
+                      isAnimationActive={false}
+                      name={compareCoin?.name || 'Comparison'}
+                    />
+                  )}
                 </AreaChart>
               </ResponsiveContainer>
             )}
           </div>
+
         </div>
 
         {/* RIGHT Rail (~30% = 4 cols): Recommendation + Compact Stats */}
