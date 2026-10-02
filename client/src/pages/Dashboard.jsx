@@ -6,6 +6,7 @@ import { useCurrency } from '../context/CurrencyContext';
 import { useAuth } from '../context/AuthContext';
 import { useWatchlist } from '../context/WatchlistContext';
 import AiSummaryCard from '../components/AiSummaryCard';
+import FearGreedCard from '../components/FearGreedCard';
 
 export default function Dashboard({ initialTab }) {
   const { currency } = useCurrency();
@@ -168,6 +169,9 @@ export default function Dashboard({ initialTab }) {
           )}
         </div>
       </div>
+
+      {/* Fear & Greed Index Card */}
+      <FearGreedCard />
 
       {/* AI Market Summary Card — fetches independently, never blocks coin grid */}
       <AiSummaryCard />
