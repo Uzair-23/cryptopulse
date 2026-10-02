@@ -40,9 +40,11 @@ app.get('/api/health', (req, res) => {
 // Routes
 const authRoutes = require('./routes/auth');
 const coinsRoutes = require('./routes/coins');
+const aiRoutes = require('./routes/ai');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/coins', coinsRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Start server
 const PORT = process.env.PORT || 4000;
