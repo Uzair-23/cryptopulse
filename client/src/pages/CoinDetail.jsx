@@ -125,6 +125,11 @@ export default function CoinDetail() {
   const [candleLoading, setCandleLoading] = useState(false);
   const [candleError, setCandleError] = useState(false);
 
+  // Technical indicator states for CandleChart
+  const [showSma20, setShowSma20] = useState(true);
+  const [showSma50, setShowSma50] = useState(true);
+  const [showRsi, setShowRsi] = useState(false);
+
   // 1. Fetch coin market data
   useEffect(() => {
     let isMounted = true;
@@ -667,12 +672,66 @@ export default function CoinDetail() {
               )}
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               {(chartType === 'line' ? chartLoading : candleLoading) && (
                 <span className="text-xs text-textMuted flex items-center gap-1.5 animate-pulse">
                   <span className="w-1.5 h-1.5 rounded-full bg-accent" />
                   Updating...
                 </span>
+              )}
+
+              {/* Technical Indicator Toggles (visible only in Candles mode) */}
+              {chartType === 'candles' && (
+                <div className="inline-flex p-1 bg-bg border border-border rounded-lg gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowSma20((prev) => !prev)}
+                    className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer flex items-center gap-1.5 ${
+                      showSma20
+                        ? 'bg-surface2 text-[#38BDF8] shadow-sm'
+                        : 'text-textMuted hover:text-text'
+                    }`}
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        showSma20 ? 'bg-[#38BDF8]' : 'bg-textMuted'
+                      }`}
+                    />
+                    SMA 20
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowSma50((prev) => !prev)}
+                    className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer flex items-center gap-1.5 ${
+                      showSma50
+                        ? 'bg-surface2 text-[#F59E0B] shadow-sm'
+                        : 'text-textMuted hover:text-text'
+                    }`}
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        showSma50 ? 'bg-[#F59E0B]' : 'bg-textMuted'
+                      }`}
+                    />
+                    SMA 50
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowRsi((prev) => !prev)}
+                    className={`px-2.5 py-1 text-xs font-semibold rounded-md transition-colors cursor-pointer flex items-center gap-1.5 ${
+                      showRsi
+                        ? 'bg-surface2 text-[#A855F7] shadow-sm'
+                        : 'text-textMuted hover:text-text'
+                    }`}
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        showRsi ? 'bg-[#A855F7]' : 'bg-textMuted'
+                      }`}
+                    />
+                    RSI
+                  </button>
+                </div>
               )}
 
               {/* Chart Type Toggle: Line | Candles */}
@@ -751,7 +810,13 @@ export default function CoinDetail() {
                   </span>
                 </div>
               ) : (
-                <CandleChart data={candleState.data || []} height={440} />
+                <CandleChart
+                  data={candleState.data || []}
+                  height={440}
+                  showSma20={showSma20}
+                  showSma50={showSma50}
+                  showRsi={showRsi}
+                />
               )
             ) : chartError ? (
               <div className="w-full h-full flex flex-col items-center justify-center text-textMuted text-sm border border-dashed border-border/60 rounded-lg p-6">
