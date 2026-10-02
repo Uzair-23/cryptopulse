@@ -21,10 +21,11 @@
 const express = require('express');
 const NodeCache = require('node-cache');
 const { getTopCoins } = require('../services/coingecko');
-const { buildMarketStats } = require('../services/marketStats');
-const { getMarketSummary } = require('../services/groq');
+const { buildMarketStats, buildCoinStats } = require('../services/marketStats');
+const { getMarketSummary, getCoinInsight } = require('../services/groq');
 
 const router = express.Router();
+
 
 // Dedicated cache for AI results — keeps TTL-expiry separate from coin data
 const aiCache = new NodeCache();
@@ -82,4 +83,67 @@ router.get('/market-summary', async (req, res) => {
   }
 });
 
+// GET /api/ai/coin/:id (public, no auth)
+router.get('/coin/:id', async (req, res) => {
+  const { id } = req.params;
+  if (!id) {
+    return res.status(404).json({ error: 'Coin not found' });
+  }
+
+  const cacheKey = `ai-coin:${id}`;
+  const lkgKey = `ai-coin:${id}-lkg`;
+
+  // 1. Cache hit — return immediately
+  const cached = aiCache.get(cacheKey);
+  if (cached) {
+    console.log(`[AI] cache hit — serving stored coin insight for ${id}`);
+    return res.json(cached);
+  }
+
+  // 2. Cache miss — fetch coin and call Groq
+  console.log(`[AI] fresh call — looking up coin and calling Groq for ${id}`);
+
+  try {
+    const currency = req.query.currency || 'usd';
+    const coins = await getTopCoins(currency);
+    const coin = coins.find((c) => c.id === id);
+
+    if (!coin) {
+      return res.status(404).json({ error: 'Coin not found' });
+    }
+
+    const stats = buildCoinStats(coin);
+    const insight = await getCoinInsight(stats);
+
+    const result = {
+      ...insight,
+      generatedAt: new Date().toISOString(),
+      stale: false
+    };
+
+    // Store in both the TTL cache and the last-known-good slot
+    aiCache.set(cacheKey, result, CACHE_TTL);
+    aiCache.set(lkgKey, result); // no TTL — lives until process restart
+
+    console.log(`[AI] success — coin insight cached for 10 minutes (${id})`);
+    return res.json(result);
+  } catch (err) {
+    console.error(`[AI] Groq call failed for coin ${id}:`, err.message);
+
+    // 3. Stale fallback — return previous successful result
+    const lkg = aiCache.get(lkgKey);
+    if (lkg) {
+      console.log(`[AI] stale fallback — returning last-known-good result for ${id}`);
+      return res.json({ ...lkg, stale: true });
+    }
+
+    // 4. No previous result — return 503
+    console.log(`[AI] unavailable — no previous result exists for ${id}`);
+    return res
+      .status(503)
+      .json({ error: 'AI insight unavailable right now' });
+  }
+});
+
 module.exports = router;
+

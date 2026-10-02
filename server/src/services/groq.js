@@ -90,4 +90,79 @@ async function getMarketSummary(stats) {
   return validate(parsed);
 }
 
-module.exports = { getMarketSummary };
+const COIN_SYSTEM_PROMPT = `You are a neutral crypto analyst. \
+You'll be given statistics for ONE cryptocurrency. Write a brief insight: \
+what's notable about its recent performance, plus 2 short observations. \
+Base every sentence ONLY on the numbers given — never invent a number or claim. \
+Never recommend buying/selling or give a price target. \
+Respond ONLY as JSON: { "headline": string, "insight": string (2-3 sentences), "observations": [string, string] }.`;
+
+/**
+ * Validate that the parsed JSON for coin insight matches the expected shape.
+ * Throws a descriptive error on any mismatch.
+ * @param {unknown} data
+ * @returns {{ headline: string, insight: string, observations: string[] }}
+ */
+function validateCoinInsight(data) {
+  if (!data || typeof data !== 'object') {
+    throw new Error('Groq response is not an object');
+  }
+  if (typeof data.headline !== 'string' || data.headline.trim() === '') {
+    throw new Error('Groq response: "headline" must be a non-empty string');
+  }
+  if (typeof data.insight !== 'string' || data.insight.trim() === '') {
+    throw new Error('Groq response: "insight" must be a non-empty string');
+  }
+  if (!Array.isArray(data.observations) || data.observations.length !== 2) {
+    throw new Error('Groq response: "observations" must be an array of exactly 2 items');
+  }
+  for (let i = 0; i < 2; i++) {
+    if (typeof data.observations[i] !== 'string' || data.observations[i].trim() === '') {
+      throw new Error(`Groq response: observations[${i}] must be a non-empty string`);
+    }
+  }
+  return {
+    headline: data.headline.trim(),
+    insight: data.insight.trim(),
+    observations: data.observations.map((o) => o.trim())
+  };
+}
+
+/**
+ * Call Groq and return a validated per-coin insight.
+ * @param {object} stats - output of buildCoinStats()
+ * @returns {Promise<{ headline: string, insight: string, observations: string[] }>}
+ */
+async function getCoinInsight(stats) {
+  const userContent = JSON.stringify(stats);
+
+  console.log(`[Groq] Calling model=${MODEL} with coin stats for ${stats?.name || stats?.symbol || 'coin'}`);
+
+  const completion = await groq.chat.completions.create({
+    model: MODEL,
+    messages: [
+      { role: 'system', content: COIN_SYSTEM_PROMPT },
+      { role: 'user', content: userContent }
+    ],
+    response_format: { type: 'json_object' },
+    temperature: 0.4,
+    max_tokens: 400
+  });
+
+  const raw = completion.choices?.[0]?.message?.content;
+  if (!raw) {
+    throw new Error('Groq returned an empty response content');
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw new Error(`Groq response could not be parsed as JSON: ${raw.slice(0, 200)}`);
+  }
+
+  return validateCoinInsight(parsed);
+}
+
+module.exports = { getMarketSummary, getCoinInsight };
+

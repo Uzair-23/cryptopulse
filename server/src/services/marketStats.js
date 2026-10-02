@@ -76,4 +76,113 @@ function buildMarketStats(coins) {
   return { topGainers, topLosers, breadth: { up, down, flat }, btcChange24h, avgChange24h };
 }
 
-module.exports = { buildMarketStats };
+/**
+ * Pure function taking one coin from the existing top-100 array and returning
+ * a normalized stats object for AI commentary. Handles any missing field as null; never throws.
+ *
+ * @param {object} coin - raw coin object from getTopCoins()
+ * @returns {{
+ *   name: string|null,
+ *   symbol: string|null,
+ *   rank: number|null,
+ *   price: number|null,
+ *   change1h: number|null,
+ *   change24h: number|null,
+ *   change7d: number|null,
+ *   high24h: number|null,
+ *   low24h: number|null,
+ *   marketCap: number|null,
+ *   volume24h: number|null,
+ *   athDistancePct: number|null,
+ *   atlDistancePct: number|null
+ * }}
+ */
+function buildCoinStats(coin) {
+  if (!coin || typeof coin !== 'object') {
+    return {
+      name: null,
+      symbol: null,
+      rank: null,
+      price: null,
+      change1h: null,
+      change24h: null,
+      change7d: null,
+      high24h: null,
+      low24h: null,
+      marketCap: null,
+      volume24h: null,
+      athDistancePct: null,
+      atlDistancePct: null
+    };
+  }
+
+  const parseNum = (v) => {
+    if (v === null || v === undefined || v === '' || isNaN(v)) return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  const name = coin.name ? String(coin.name) : null;
+  const symbol = coin.symbol ? String(coin.symbol).toUpperCase() : null;
+  const rank = parseNum(coin.market_cap_rank ?? coin.rank);
+  const price = parseNum(coin.current_price ?? coin.price);
+
+  const change1h = parseNum(
+    coin.price_change_percentage_1h_in_currency ??
+    coin.price_change_percentage_1h
+  );
+  const change24h = parseNum(
+    coin.price_change_percentage_24h_in_currency ??
+    coin.price_change_percentage_24h
+  );
+  const change7d = parseNum(
+    coin.price_change_percentage_7d_in_currency ??
+    coin.price_change_percentage_7d
+  );
+
+  const high24h = parseNum(coin.high_24h);
+  const low24h = parseNum(coin.low_24h);
+  const marketCap = parseNum(coin.market_cap);
+  const volume24h = parseNum(coin.total_volume ?? coin.volume_24h);
+
+  // athDistancePct: how far below ATH, as %, 1 decimal
+  let athDistancePct = null;
+  if (coin.ath_change_percentage !== undefined && coin.ath_change_percentage !== null && !isNaN(coin.ath_change_percentage)) {
+    athDistancePct = Math.round(Math.abs(Number(coin.ath_change_percentage)) * 10) / 10;
+  } else if (coin.ath && coin.current_price && Number(coin.ath) > 0) {
+    const rawAth = Number(coin.ath);
+    const rawPrice = Number(coin.current_price);
+    const diff = Math.max(0, rawAth - rawPrice);
+    athDistancePct = Math.round((diff / rawAth) * 1000) / 10;
+  }
+
+  // atlDistancePct: how far above ATL, as %
+  let atlDistancePct = null;
+  if (coin.atl_change_percentage !== undefined && coin.atl_change_percentage !== null && !isNaN(coin.atl_change_percentage)) {
+    atlDistancePct = Math.round(Number(coin.atl_change_percentage) * 10) / 10;
+  } else if (coin.atl && coin.current_price && Number(coin.atl) > 0) {
+    const rawAtl = Number(coin.atl);
+    const rawPrice = Number(coin.current_price);
+    const diff = rawPrice - rawAtl;
+    atlDistancePct = Math.round((diff / rawAtl) * 1000) / 10;
+  }
+
+  return {
+    name,
+    symbol,
+    rank,
+    price,
+    change1h,
+    change24h,
+    change7d,
+    high24h,
+    low24h,
+    marketCap,
+    volume24h,
+    athDistancePct,
+    atlDistancePct
+  };
+}
+
+module.exports = { buildMarketStats, buildCoinStats };
+
