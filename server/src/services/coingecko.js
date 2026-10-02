@@ -110,7 +110,52 @@ async function getCoinChart(id, days, currency = 'usd') {
   }
 }
 
+async function getCoinOhlc(id, days, currency = 'usd') {
+  const curr = sanitizeCurrency(currency);
+  const cacheKey = curr === 'usd' ? `ohlc:${id}:${days}` : `ohlc:${id}:${days}:${curr}`;
+  const cached = cache.get(cacheKey);
+
+  if (cached) {
+    console.log(`[CoinGecko: cache hit] ${cacheKey}`);
+    return cached;
+  }
+
+  console.log(`[CoinGecko: fetching] ${cacheKey}`);
+
+  try {
+    const response = await axios.get(`${COINGECKO_BASE_URL}/coins/${encodeURIComponent(id)}/ohlc`, {
+      params: {
+        vs_currency: curr,
+        days
+      },
+      headers: getHeaders(),
+      timeout: 10000
+    });
+
+    const data = response.data;
+    cache.set(cacheKey, data, 300); // 300 seconds (5 mins) TTL
+    lastKnownGood.set(cacheKey, data);
+
+    return data;
+  } catch (err) {
+    console.error(`[CoinGecko: error fetching ${cacheKey}]`, err.message);
+
+    if (lastKnownGood.has(cacheKey)) {
+      console.log(`[CoinGecko: serving stale data] ${cacheKey}`);
+      const staleData = lastKnownGood.get(cacheKey);
+      if (Array.isArray(staleData)) {
+        staleData.stale = true;
+        return staleData;
+      }
+      return { ...staleData, stale: true };
+    }
+
+    throw err;
+  }
+}
+
 module.exports = {
   getTopCoins,
-  getCoinChart
+  getCoinChart,
+  getCoinOhlc
 };
