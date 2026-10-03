@@ -131,10 +131,6 @@ cryptopulse/
 │   ├── package.json
 │   └── .env.example
 │
-├── docs/                       # Specifications & design documentation
-│   ├── DESIGN.md               # Design tokens, typography & aesthetics
-│   ├── PLAN.md                 # Implementation task logs
-│   └── PRD.md                  # Product requirement document
 ├── AGENTS.md                   # AI Assistant development guidelines
 └── README.md                   # Project documentation
 ```
