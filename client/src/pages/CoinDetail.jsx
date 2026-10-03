@@ -809,7 +809,7 @@ export default function CoinDetail() {
         {/* LEFT Column (~58% = 7 cols): Interactive Price Chart */}
         <div className="lg:col-span-7 bg-surface border border-border rounded-xl p-4 sm:p-6 flex flex-col">
           {/* Header Row: Title on Left, Unified Cluster Toolbar on Right */}
-          <div className="flex flex-wrap items-center justify-between gap-2.5 mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4">
             {/* Title + % Change */}
             <div className="flex items-center gap-2 shrink-0">
               <SectionLabel className="whitespace-nowrap">
@@ -830,7 +830,7 @@ export default function CoinDetail() {
             </div>
 
             {/* Right-aligned Toolbar Cluster with consistent tight gaps */}
-            <div className="flex items-center justify-end gap-2 shrink-0 ml-auto">
+            <div className="flex flex-wrap items-center justify-start sm:justify-end gap-2 sm:ml-auto">
               {(chartType === 'line' ? (chartLoading || compareLoading) : candleLoading) && (
                 <span className="text-xs text-textMuted flex items-center gap-1.5 animate-pulse mr-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-accent" />
@@ -1046,7 +1046,7 @@ export default function CoinDetail() {
           )}
 
           {/* Chart Viewport (flex-grow to fill vertical height) */}
-          <div className="w-full flex-1 min-h-[440px] sm:min-h-[480px] min-w-0 relative flex flex-col">
+          <div className="w-full flex-1 min-h-[350px] sm:min-h-[440px] min-w-0 relative flex flex-col">
             {chartType === 'candles' ? (
               candleError ? (
                 <div className="w-full h-full flex flex-col items-center justify-center text-textMuted text-sm border border-dashed border-border/60 rounded-lg p-6">

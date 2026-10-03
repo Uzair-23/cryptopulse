@@ -18,7 +18,7 @@ export default function AlertWatcher() {
   return (
     <div
       aria-live="polite"
-      className="fixed bottom-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-auto select-none"
+      className="fixed bottom-4 right-4 left-4 sm:left-auto sm:right-5 sm:bottom-5 z-50 flex flex-col gap-2.5 max-w-sm w-auto sm:w-full pointer-events-auto select-none"
     >
       {toasts.map((toast) => (
         <div
